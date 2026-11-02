@@ -133,6 +133,7 @@ tr.me td{color:#9a6b00;font-weight:700}
   </div>
   <div class="bottom">
     <div id="hint"></div>
+    <button id="skipBtn" class="btn hidden" type="button" style="pointer-events:auto;margin:0 auto;width:auto;padding:10px 18px;font-size:15px">⏭️ تخطي دور اللاعب المنتظر</button>
     <div id="skills"></div>
   </div>
 </div>
@@ -144,7 +145,7 @@ tr.me td{color:#9a6b00;font-weight:700}
 
 <div id="start" class="overlay">
   <div class="card">
-    <h1>غولف الاندفاع <small style="font-size:12px;color:var(--muted);font-weight:500">الإصدار 20</small></h1>
+    <h1>غولف الاندفاع <small style="font-size:12px;color:var(--muted);font-weight:500">الإصدار 21</small></h1>
     <p>اسحب كرتك للخلف كالمقلاع واتركها لتنطلق نحو الحفرة. أول من يُدخلها يأخذ أكبر النقاط ويفتح «الجولة الأخيرة»: ضربة واحدة للبقية. المهارات لا تبدأ معك: اصطدم بالصناديق المجهولة ❓ لتحصل على واحدة من 12 مهارة عشوائية، منها الحبل الذي يربط خصمين معاً واللعنة التي تحرف ضربة خصمك. احذر الفخاخ: رمل، قافز، عارضة دوّارة، مروحة، ثقب جاذب، وأشواك. اصدم الخصوم وازرع الألغام لتكسب نقاطاً. ⏱ 20 ثانية لكل دور. الفيزياء رياضية: القوة تساوي مسافة التوقف بالضبط، والكرة ترتد عن الجدران بزاوية انعكاس مساوية لزاوية السقوط وبلا فقدان للسرعة.</p>
     <div class="tabs" id="modeTabs">
       <button type="button" data-m="solo" class="on">🤖 ضد الكمبيوتر</button>
@@ -673,6 +674,9 @@ function nextTurn(){
 }
 
 // Actions go through here so online play can broadcast them.
+function forceSkipRemote(){const p=S.cur>=0?cur():null;if(!p||p.kind!=='remote'||S.state!=='aim')return;
+  if(S.mode==='online'&&NET.room){try{NET.sendAct({t:'skip'});}catch(e){}}
+  toast(`⏳ ${p.name} لم يسدد، تم تخطي دوره`);applyAction({t:'skip'});}
 function doAction(a){
   if(a.t==='shot'&&cur()&&cur().cursed){const dev=(Math.random()<0.5?-1:1)*rnd(0.45,0.8);const c=Math.cos(dev),sn=Math.sin(dev);const nx=a.dx*c-a.dz*sn,nz=a.dx*sn+a.dz*c;a.dx=nx;a.dz=nz;a.cursed=true;}
   if(S.mode==='online'&&NET.room&&isLocalHuman(cur())){NET.sendAct(a);}
@@ -834,6 +838,7 @@ function updateHUD(){
   $('#hint').textContent=S.state==='aim'?(mine?(S.overview?'أغلق النظرة العلوية ثم اسحب للتسديد':'اضغط على الكرة واسحب للخلف للتسديد · اسحب الشاشة لتدوير الكاميرا'):`${p?p.name:''} ${p&&p.kind==='remote'?'يسدد الآن…':'يستعد للتسديد…'}`):'';
   $('#tut').classList.toggle('on',mine&&!S.overview&&S.shots===0&&!S.drag);
   $('#msgBtn').classList.toggle('hidden',!NET.room);
+  if(!(p&&p.kind==='remote'&&S.state==='aim'))$('#skipBtn').classList.add('hidden');
 }
 $('#skills').addEventListener('click',e=>{
   const b=e.target.closest('.sk');if(!b)return;const k=b.dataset.k;
@@ -981,6 +986,7 @@ function goHome(){clearTimeout(S.autoNext);['#menu','#board','#picker','#msgBox'
   S.players.forEach(q=>{q.model.g.visible=false;q.label.visible=false;});S.ropes.forEach(r=>scene.remove(r.line));S.ropes=[];S.drag=null;S.botPull=null;S.state='start';S.cur=-1;S.mode='solo';
   $('#start').classList.remove('hidden');updateHUD();}
 $('#menuBtn').addEventListener('click',openMenu);
+$('#skipBtn').addEventListener('click',()=>{$('#skipBtn').classList.add('hidden');S.turnT=999;forceSkipRemote();});
 $('#menuResume').addEventListener('click',()=>$('#menu').classList.add('hidden'));
 $('#menuMsg').addEventListener('click',()=>{$('#menu').classList.add('hidden');openMsgBox();});
 $('#menuHome').addEventListener('click',goHome);
@@ -1164,6 +1170,7 @@ function update(dt,time){
   if(S.state==='moving'){S.moveT=(S.moveT||0)+dt;let maxSp=0,anyAir=false;S.players.forEach(b=>{if(b.spawned&&!b.sunk){maxSp=Math.max(maxSp,Math.hypot(b.vel.x,b.vel.z));if(b.air)anyAir=true;}});
     S.slowT=(maxSp<0.35&&!anyAir)?(S.slowT||0)+dt:0;
     if(S.moveT>20||S.slowT>1.5){S.players.forEach(b=>{if(!b.air){b.vel.set(0,0,0);}else if(S.moveT>20){b.vel.set(0,0,0);b.air=false;b.pos.y=heightAt(S.H,b.pos.x,b.pos.z);}});}}
+  if(S.state==='wait'){S.waitT=(S.waitT||0)+dt;if(S.waitT>4){S.waitT=0;nextTurn();}}else S.waitT=0;
   if(S.state==='aim'&&S.cur>=0){S.aimT=(S.aimT||0)+dt;const cp=cur();if(cp.kind==='bot'&&!S.botPull&&S.aimT>7){S.aimT=0;botAim(cp);}}
   if(S.state==='moving'||S.state==='aim'||S.state==='wait'){
     const ev=[];S.acc+=dt;let n=0;
@@ -1230,7 +1237,8 @@ function update(dt,time){
     const left=Math.max(0,Math.ceil(S.turnT));
     if(left!==S.lastShown){S.lastShown=left;const p=cur();$('#strokeInfo').textContent=`ضربات: ${p.strokes} · ⏱ ${left}`;}
     if(S.turnT<=0&&isLocalHuman(cur())){S.turnT=999;S.drag=null;$('#power').classList.remove('on');doAction({t:'skip'});}
-    else if(S.turnT<-6&&cur().kind==='remote'){S.turnT=999;toast(`⏳ ${cur().name} لم يسدد، تم تخطي دوره`);applyAction({t:'skip'});}
+    else if(S.turnT<-(2+Math.random()*3)&&cur().kind==='remote'){S.turnT=999;forceSkipRemote();}
+    $('#skipBtn').classList.toggle('hidden',!(cur().kind==='remote'&&S.turnT<10&&S.turnT<900));
   }
   for(let k=S.fx.length-1;k>=0;k--){const f=S.fx[k];f.t+=dt;const s=0.3+f.t/f.life*2.2;f.mesh.scale.setScalar(s);f.mesh.material.opacity=0.8*(1-f.t/f.life);if(f.t>=f.life){scene.remove(f.mesh);S.fx.splice(k,1);}}
   // camera
