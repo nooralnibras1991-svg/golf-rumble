@@ -145,7 +145,7 @@ tr.me td{color:#9a6b00;font-weight:700}
 <div id="start" class="overlay">
   <div class="card">
     <h1>غولف الاندفاع</h1>
-    <p>اسحب كرتك للخلف كالمقلاع واتركها لتنطلق نحو الحفرة. أول من يُدخلها يأخذ أكبر النقاط ويفتح «الجولة الأخيرة»: ضربة واحدة للبقية. المهارات لا تبدأ معك: اصطدم بالصناديق المجهولة ❓ لتحصل على واحدة من 12 مهارة عشوائية، منها الحبل الذي يربط خصمين معاً واللعنة التي تحرف ضربة خصمك. احذر الفخاخ: رمل، قافز، عارضة دوّارة، مروحة، ثقب جاذب، وأشواك. اصدم الخصوم وازرع الألغام لتكسب نقاطاً. ⏱ 20 ثانية لكل دور.</p>
+    <p>اسحب كرتك للخلف كالمقلاع واتركها لتنطلق نحو الحفرة. أول من يُدخلها يأخذ أكبر النقاط ويفتح «الجولة الأخيرة»: ضربة واحدة للبقية. المهارات لا تبدأ معك: اصطدم بالصناديق المجهولة ❓ لتحصل على واحدة من 12 مهارة عشوائية، منها الحبل الذي يربط خصمين معاً واللعنة التي تحرف ضربة خصمك. احذر الفخاخ: رمل، قافز، عارضة دوّارة، مروحة، ثقب جاذب، وأشواك. اصدم الخصوم وازرع الألغام لتكسب نقاطاً. ⏱ 20 ثانية لكل دور. الفيزياء رياضية: القوة تساوي مسافة التوقف بالضبط، والكرة ترتد عن الجدران بزاوية انعكاس مساوية لزاوية السقوط.</p>
     <div class="tabs" id="modeTabs">
       <button type="button" data-m="solo" class="on">🤖 ضد الكمبيوتر</button>
       <button type="button" data-m="local">📱 نفس الجهاز</button>
@@ -250,7 +250,7 @@ const hex=c=>'#'+c.toString(16).padStart(6,'0');
 
 const IS_MOBILE=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 const MAP_SCALE=2.5;
-const MAXV=23, G=9.8, R=0.45, HOLE_R=0.62, FRIC=1.7, REST=0.55, MAX_STROKES=8, STEP=1/120, TURN_TIME=20;
+const MAXV=23, G=9.8, R=0.45, HOLE_R=0.62, FRIC=2.2, REST=1.0, WALL_LOSS=0.96, MAX_DIST=80, MAX_STROKES=8, STEP=1/120, TURN_TIME=20;
 const ORDER_PTS=[5,3,2,1,1,1];
 const SKILL_MAX={power:2,jump:2,shield:1,freeze:1,shove:2,mine:1,magnet:1,ghost:1,swap:1,quake:1,rope:1,curse:1};
 const SKILL_ZERO=()=>({power:0,jump:0,shield:0,freeze:0,shove:0,mine:0,magnet:0,ghost:0,swap:0,quake:0,rope:0,curse:0});
@@ -297,6 +297,8 @@ const TRAPS=[
 // ---------- terrain ----------
 function heightAt(H,x,z){let y=0;for(const b of H.bumps){const d2=((x-b.x)**2+(z-b.z)**2)/(b.r*b.r);y+=b.a*Math.exp(-2*d2);}return y;}
 function gradAt(H,x,z){let gx=0,gz=0;for(const b of H.bumps){const r2=b.r*b.r;const d2=((x-b.x)**2+(z-b.z)**2)/r2;const e=b.a*Math.exp(-2*d2);gx+=e*(-4*(x-b.x)/r2);gz+=e*(-4*(z-b.z)/r2);}return [gx,gz];}
+// Shot model: constant deceleration a=FRIC, so stopping distance d=v^2/(2a). Power p picks d=p*MAX_DIST exactly.
+function shotSpeed(pw){return Math.sqrt(2*FRIC*clamp(pw,0,1)*MAX_DIST);}
 function buildHole(def){const H=JSON.parse(JSON.stringify(def));const s=MAP_SCALE;
   H.w*=s;H.l*=s;H.start.x*=s;H.start.z*=s;H.hole.x*=s;H.hole.z*=s;
   H.walls.forEach(w=>{w.x*=s;w.z*=s;const thin=w.w<=1.2,thinL=w.l<=1.2;w.w*=thin?0.6:s;w.l*=thinL?0.6:s;});H.posts.forEach(q=>{q.x*=s;q.z*=s;q.r*=s*0.8;});
@@ -317,7 +319,7 @@ function physStep(b,H,dt,ev){
     const [gx,gz]=gradAt(H,b.pos.x,b.pos.z);
     b.vel.x-=G*gx*dt; b.vel.z-=G*gz*dt;
     const sp=Math.hypot(b.vel.x,b.vel.z);
-    if(sp>0){const ns=Math.max(0,sp-(FRIC+0.09*sp)*dt);b.vel.x*=ns/sp;b.vel.z*=ns/sp;}
+    if(sp>0){const ns=Math.max(0,sp-FRIC*dt);b.vel.x*=ns/sp;b.vel.z*=ns/sp;}
     if(Math.hypot(b.vel.x,b.vel.z)<0.1&&Math.hypot(gx,gz)<0.08){b.vel.x=0;b.vel.z=0;}
     b.pos.x+=b.vel.x*dt; b.pos.z+=b.vel.z*dt;
     b.pos.y=heightAt(H,b.pos.x,b.pos.z);
@@ -332,10 +334,10 @@ function physStep(b,H,dt,ev){
       if(d<m&&d>1e-6){dx/=d;dz/=d;b.pos.x+=dx*(m-d);b.pos.z+=dz*(m-d);const tvx=-uz*t.speed*proj,tvz=ux*t.speed*proj;const rel=(b.vel.x-tvx)*dx+(b.vel.z-tvz)*dz;if(rel<0){b.vel.x-=(1+REST)*rel*dx;b.vel.z-=(1+REST)*rel*dz;if(ev)ev.push('wall');}}}}
   }
   const hw=H.w/2-R, hl=H.l/2-R;
-  if(b.pos.x<-hw){b.pos.x=-hw;if(b.vel.x<0)b.vel.x*=-REST;}
-  if(b.pos.x>hw){b.pos.x=hw;if(b.vel.x>0)b.vel.x*=-REST;}
-  if(b.pos.z<-hl){b.pos.z=-hl;if(b.vel.z<0)b.vel.z*=-REST;}
-  if(b.pos.z>hl){b.pos.z=hl;if(b.vel.z>0)b.vel.z*=-REST;}
+  if(b.pos.x<-hw){b.pos.x=-hw;if(b.vel.x<0){b.vel.x=-b.vel.x;b.vel.x*=WALL_LOSS;b.vel.z*=WALL_LOSS;}}
+  if(b.pos.x>hw){b.pos.x=hw;if(b.vel.x>0){b.vel.x=-b.vel.x;b.vel.x*=WALL_LOSS;b.vel.z*=WALL_LOSS;}}
+  if(b.pos.z<-hl){b.pos.z=-hl;if(b.vel.z<0){b.vel.z=-b.vel.z;b.vel.x*=WALL_LOSS;b.vel.z*=WALL_LOSS;}}
+  if(b.pos.z>hl){b.pos.z=hl;if(b.vel.z>0){b.vel.z=-b.vel.z;b.vel.x*=WALL_LOSS;b.vel.z*=WALL_LOSS;}}
   if(b.magnet&&!b.air){const mx=H.hole.x-b.pos.x,mz=H.hole.z-b.pos.z;const md=Math.hypot(mx,mz);if(md<9&&md>0.01){b.vel.x+=mx/md*10*dt;b.vel.z+=mz/md*10*dt;}}
   if(!b.ghost)for(const w of H.walls){
     if(b.pos.y>heightAt(H,w.x,w.z)+w.h-0.05) continue;
@@ -346,12 +348,12 @@ function physStep(b,H,dt,ev){
       else{dx/=d;dz/=d;}
       b.pos.x+=dx*(R-d); b.pos.z+=dz*(R-d);
       const vn=b.vel.x*dx+b.vel.z*dz;
-      if(vn<0){b.vel.x-=(1+REST)*vn*dx;b.vel.z-=(1+REST)*vn*dz;b.hit=Math.abs(vn);if(ev)ev.push('wall');}
+      if(vn<0){b.vel.x-=(1+REST)*vn*dx;b.vel.z-=(1+REST)*vn*dz;b.vel.x*=WALL_LOSS;b.vel.z*=WALL_LOSS;b.hit=Math.abs(vn);if(ev)ev.push('wall');}
     }
   }
   if(!b.ghost)for(const p of H.posts){
     let dx=b.pos.x-p.x,dz=b.pos.z-p.z;const d=Math.hypot(dx,dz),m=R+p.r;
-    if(d<m&&d>1e-6){dx/=d;dz/=d;b.pos.x+=dx*(m-d);b.pos.z+=dz*(m-d);const vn=b.vel.x*dx+b.vel.z*dz;if(vn<0){b.vel.x-=(1+REST)*vn*dx;b.vel.z-=(1+REST)*vn*dz;if(ev)ev.push('wall');}}
+    if(d<m&&d>1e-6){dx/=d;dz/=d;b.pos.x+=dx*(m-d);b.pos.z+=dz*(m-d);const vn=b.vel.x*dx+b.vel.z*dz;if(vn<0){b.vel.x-=(1+REST)*vn*dx;b.vel.z-=(1+REST)*vn*dz;b.vel.x*=WALL_LOSS;b.vel.z*=WALL_LOSS;if(ev)ev.push('wall');}}
   }
   if(!b.air) for(const w of H.water){if(Math.abs(b.pos.x-w.x)<w.w/2&&Math.abs(b.pos.z-w.z)<w.l/2){b.wet=true;b.wetT=0;b.vel.set(0,0,0);if(ev)ev.push('water');}}
   if(!b.air){
@@ -360,11 +362,11 @@ function physStep(b,H,dt,ev){
   }
 }
 function simShot(H,p,dx,dz,pw,T,jump,boost,record,pick,magnet,ghost){
-  const v=pw*MAXV*(boost?1.4:1);
+  const v=shotSpeed(pw)*(boost?1.25:1);
   const c={pos:p.pos.clone(),vel:V3(dx*v,0,dz*v),air:false,holed:false,wet:false,magnet:!!magnet,ghost:!!ghost};
   if(jump){c.vel.y=5+pw*7;c.air=true;}
   const dt=1/60;let t=0,i=0;const pts=[];let picks=0;const got=new Set();
-  while(t<T){physStep(c,H,dt);t+=dt;i++;if(record&&i%4===0)pts.push(c.pos.clone());if(pick&&i%2===0){for(const u of pick){if(!got.has(u)&&Math.hypot(c.pos.x-u.x,c.pos.z-u.z)<0.8){got.add(u);picks++;}}}if(c.holed||c.wet)break;if(!c.air&&c.vel.x===0&&c.vel.z===0)break;}
+  while(t<T){physStep(c,H,dt);t+=dt;i++;if(record&&i%6===0)pts.push(c.pos.clone());if(pick&&i%2===0){for(const u of pick){if(!got.has(u)&&Math.hypot(c.pos.x-u.x,c.pos.z-u.z)<0.8){got.add(u);picks++;}}}if(c.holed||c.wet)break;if(!c.air&&c.vel.x===0&&c.vel.z===0)break;}
   return {holed:c.holed,wet:c.wet,dist:Math.hypot(c.pos.x-H.hole.x,c.pos.z-H.hole.z),pts,picks};
 }
 
@@ -481,7 +483,7 @@ const rope1=new THREE.Line(ropeGeo1,ropeMat),rope2=new THREE.Line(ropeGeo2,ropeM
 const pegMat=new THREE.MeshLambertMaterial({color:0x8b5a2b});
 const pegs=[0,1].map(()=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.7,8),pegMat);p.visible=false;p.castShadow=true;scene.add(p);return p;});
 const dots=[];const dotMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.75,depthTest:false});
-for(let i=0;i<30;i++){const d=new THREE.Mesh(new THREE.SphereGeometry(0.1,8,6),dotMat);d.visible=false;d.renderOrder=5;scene.add(d);dots.push(d);}
+for(let i=0;i<44;i++){const d=new THREE.Mesh(new THREE.SphereGeometry(0.1,8,6),dotMat);d.visible=false;d.renderOrder=5;scene.add(d);dots.push(d);}
 const protractor=new THREE.Group();
 {const ringM=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.5,depthTest:false,side:THREE.DoubleSide});
  const ring=new THREE.Mesh(new THREE.RingGeometry(2.3,2.4,64),ringM);ring.rotation.x=-Math.PI/2;ring.renderOrder=4;protractor.add(ring);
@@ -666,7 +668,7 @@ function applyAction(a){
 
 function shoot(p,dx,dz,pw){
   p.strokes++;S.shots++;
-  const v=pw*MAXV*(S.armed.power?1.4:1);
+  const v=shotSpeed(pw)*(S.armed.power?1.25:1);
   p.vel.set(dx*v,0,dz*v);
   if(S.armed.jump){p.vel.y=5+pw*7;p.air=true;}
   if(S.armed.power)p.sk.power--;if(S.armed.jump)p.sk.jump--;
@@ -787,7 +789,7 @@ function botAim(p){
   const myD=Math.hypot(p.pos.x-H.hole.x,p.pos.z-H.hole.z);
   const boost=p.sk.power>0&&myD>44;const magnet=p.sk.magnet>0&&myD<14;
   let best={score:1e9};
-  const evalShot=(ang,pw,jump,ghost)=>{const r=simShot(H,p,Math.cos(ang),Math.sin(ang),pw,6,jump,boost,false,S.pickups,magnet,ghost);const sc=r.holed?-1000+pw:r.dist+(r.wet?40:0)+(jump?1.2:0)+(ghost?1.5:0)-3*r.picks;if(sc<best.score)best={score:sc,ang,pw,jump,ghost};};
+  const evalShot=(ang,pw,jump,ghost)=>{const r=simShot(H,p,Math.cos(ang),Math.sin(ang),pw,7,jump,boost,false,S.pickups,magnet,ghost);const sc=r.holed?-1000+pw:r.dist+(r.wet?40:0)+(jump?1.2:0)+(ghost?1.5:0)-3*r.picks;if(sc<best.score)best={score:sc,ang,pw,jump,ghost};};
   const tryAll=(jump,ghost)=>{for(let ai=-6;ai<=6;ai++){const ang=base+ai*Math.PI/12;for(let pw=0.15;pw<=1.001;pw+=0.14)evalShot(ang,pw,jump,ghost);}
     const b0=best;if(b0.ang!=null){const a0=b0.ang,p0=b0.pw;for(let ai=-2;ai<=2;ai++)for(let pi=-2;pi<=2;pi++){if(!ai&&!pi)continue;evalShot(a0+ai*Math.PI/48,clamp(p0+pi*0.05,0.1,1),jump,ghost);}}};
   tryAll(false,false);
@@ -1045,7 +1047,7 @@ canvas.addEventListener('pointermove',e=>{
   const dx=e.clientX-d.x0,dy=e.clientY-d.y0;const len=Math.hypot(dx,dy);
   const maxLen=Math.min(window.innerWidth,window.innerHeight)*(IS_MOBILE?0.62:0.42);
   d.len=len;d.dead=len<DZ;d.pw=d.dead?0:Math.pow(clamp((len-DZ)/maxLen,0,1),1.3);
-  pwLbl.textContent=d.dead?'إلغاء':Math.round(d.pw*100)+'% · '+(d.ang!=null?Math.round(d.ang):0)+'°';pwLbl.style.left=e.clientX+'px';pwLbl.style.top=(e.clientY-54)+'px';pwLbl.classList.toggle('on',!d.dead);pwLbl.classList.toggle('max',d.pw>=0.995);
+  pwLbl.textContent=d.dead?'إلغاء':Math.round(d.pw*100)+'% · '+Math.round(d.pw*MAX_DIST)+' م · '+(d.ang!=null?Math.round(d.ang):0)+'°';pwLbl.style.left=e.clientX+'px';pwLbl.style.top=(e.clientY-54)+'px';pwLbl.classList.toggle('on',!d.dead);pwLbl.classList.toggle('max',d.pw>=0.995);
   if(len>4){const bp=cur();const hit=bp?groundHit(e.clientX,e.clientY,bp.pos.y+R):null;let ok=false;if(hit){const vx=bp.pos.x-hit.x,vz=bp.pos.z-hit.z;const L=Math.hypot(vx,vz);if(L>0.05){d.dx=vx/L;d.dz=vz/L;ok=true;}}if(!ok){[d.dx,d.dz]=launchDir(d.yaw,dx,dy);}const sn=snapAngle(d.dx,d.dz);d.dx=sn[0];d.dz=sn[1];d.ang=sn[2];}
   dzEl.classList.toggle('cancel',d.dead);
   dzLine.classList.toggle('on',!d.dead);dzLine.style.width=Math.max(0,len-DZ)+'px';dzLine.style.transform=`rotate(${Math.atan2(dy,dx)}rad) translateX(${DZ}px)`;
@@ -1167,7 +1169,7 @@ function update(dt,time){
   let ropeOn=false,ropeP=null,ropeDir=null;
   if(d&&S.state==='aim'){const p=cur();p.vis.set(-d.dx*d.pw*1.6,0,-d.dz*d.pw*1.6);
     ropeOn=!d.dead;ropeP=p;ropeDir=[d.dx,d.dz];
-    if(ropeOn){const r=simShot(H,p,d.dx,d.dz,Math.max(0.08,d.pw),3.6,S.armed.jump,S.armed.power,true,null,S.armed.magnet,S.armed.ghost);dots.forEach((m,i)=>{const pt=r.pts[i];m.visible=!!pt;if(pt)m.position.set(pt.x,pt.y+0.12,pt.z);});
+    if(ropeOn){const r=simShot(H,p,d.dx,d.dz,Math.max(0.08,d.pw),5.5,S.armed.jump,S.armed.power,true,null,S.armed.magnet,S.armed.ghost);dots.forEach((m,i)=>{const pt=r.pts[i];m.visible=!!pt;if(pt)m.position.set(pt.x,pt.y+0.12,pt.z);});
       protractor.visible=true;protractor.position.set(p.pos.x,p.pos.y+0.05,p.pos.z);
       arrowGroup.visible=true;arrowGroup.position.set(p.pos.x,p.pos.y+0.06,p.pos.z);arrowGroup.rotation.y=Math.atan2(d.dx,d.dz);arrow.scale.set(1,1.4+d.pw*4.5,1);arrowMat.color.setHSL(0.33-d.pw*0.33,0.9,0.6);}
     else{dots.forEach(m=>m.visible=false);arrowGroup.visible=false;protractor.visible=false;}
