@@ -67,6 +67,9 @@ body{background:var(--sky);color:var(--fg);font-family:var(--font);direction:rtl
 #ballRing{position:fixed;left:0;top:0;width:96px;height:96px;margin:-48px 0 0 -48px;border:3px solid rgba(255,255,255,.95);border-radius:50%;pointer-events:none;display:none;box-shadow:0 0 0 2px rgba(0,0,0,.18),0 0 18px rgba(255,255,255,.5);animation:ringPulse 1.3s ease-in-out infinite}
 #ballRing.on{display:block}
 @keyframes ringPulse{0%{transform:scale(.92);opacity:.75}50%{transform:scale(1.06);opacity:1}100%{transform:scale(.92);opacity:.75}}
+#pwLbl{position:fixed;left:0;top:0;transform:translate(-50%,-100%);background:var(--panel-strong);color:var(--fg);padding:4px 12px;border-radius:999px;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;box-shadow:var(--shadow);pointer-events:none;display:none;direction:ltr}
+#pwLbl.on{display:block}
+#pwLbl.max{background:var(--coral);color:#fff}
 #dz{position:fixed;left:0;top:0;width:76px;height:76px;margin:-38px 0 0 -38px;border:2px dashed rgba(255,255,255,.95);border-radius:50%;pointer-events:none;display:none;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);box-shadow:0 0 0 1px rgba(0,0,0,.15),inset 0 0 0 1px rgba(0,0,0,.15);transition:background .15s}
 #dz.on{display:flex}
 #dz.cancel{background:rgba(232,93,93,.45)}
@@ -132,7 +135,7 @@ tr.me td{color:#9a6b00;font-weight:700}
 </div>
 <div id="power"><div id="powerFill"></div></div>
 <div id="ballRing"></div>
-<div id="dzLine"></div><div id="dz">إلغاء</div>
+<div id="dzLine"></div><div id="dz">إلغاء</div><div id="pwLbl"></div>
 <div id="tut"><span class="f">☝️</span>اضغط على كرتك واسحب للخلف</div>
 <div id="toast"></div>
 
@@ -463,7 +466,7 @@ const rope1=new THREE.Line(ropeGeo1,ropeMat),rope2=new THREE.Line(ropeGeo2,ropeM
 const pegMat=new THREE.MeshLambertMaterial({color:0x8b5a2b});
 const pegs=[0,1].map(()=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.7,8),pegMat);p.visible=false;p.castShadow=true;scene.add(p);return p;});
 const dots=[];const dotMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.75,depthTest:false});
-for(let i=0;i<22;i++){const d=new THREE.Mesh(new THREE.SphereGeometry(0.09,8,6),dotMat);d.visible=false;d.renderOrder=5;scene.add(d);dots.push(d);}
+for(let i=0;i<30;i++){const d=new THREE.Mesh(new THREE.SphereGeometry(0.1,8,6),dotMat);d.visible=false;d.renderOrder=5;scene.add(d);dots.push(d);}
 const arrowGroup=new THREE.Group();const arrowGeo=new THREE.PlaneGeometry(0.8,1);arrowGeo.translate(0,0.5,0);
 const arrowMat=new THREE.MeshBasicMaterial({map:arrowTexture(),transparent:true,opacity:0.9,depthTest:false,side:THREE.DoubleSide,color:0xffffff});
 const arrow=new THREE.Mesh(arrowGeo,arrowMat);arrow.rotation.x=Math.PI/2;arrow.renderOrder=4;arrowGroup.add(arrow);arrowGroup.visible=false;scene.add(arrowGroup);
@@ -980,7 +983,8 @@ netInit();
 
 // ---------- input (slingshot drag) ----------
 function launchDir(yaw,dx,dy){const x=Math.cos(yaw)*dx+Math.sin(yaw)*dy,z=-Math.sin(yaw)*dx+Math.cos(yaw)*dy;const l=Math.hypot(x,z)||1;return [x/l,z/l];}
-const DZ=38,HIT=64;
+const DZ=IS_MOBILE?30:38,HIT=IS_MOBILE?84:64;
+const pwLbl=document.getElementById('pwLbl');
 const dzEl=$('#dz'),dzLine=$('#dzLine'),ringEl=$('#ballRing');
 function ballScreenPos(){const p=S.cur>=0?cur():null;if(!p||!p.spawned)return null;const v=p.model.g.position.clone();v.y+=R;v.project(camera);if(v.z>1)return null;return {x:(v.x+1)/2*window.innerWidth,y:(1-v.y)/2*window.innerHeight};}
 canvas.addEventListener('pointerdown',e=>{
@@ -1004,8 +1008,9 @@ canvas.addEventListener('pointermove',e=>{
   if(cd&&e.pointerId===cd.id){const mx=e.clientX-cd.x,my=e.clientY-cd.y;cd.x=e.clientX;cd.y=e.clientY;S.camYaw-=mx*0.006;S.camPitch=clamp(S.camPitch-my*0.004,0.55,1.9);S.camUserT=performance.now();return;}
   const d=S.drag;if(!d||e.pointerId!==d.id)return;
   const dx=e.clientX-d.x0,dy=e.clientY-d.y0;const len=Math.hypot(dx,dy);
-  const maxLen=Math.min(window.innerWidth,window.innerHeight)*0.42;
-  d.len=len;d.dead=len<DZ;d.pw=d.dead?0:clamp((len-DZ)/maxLen,0,1);
+  const maxLen=Math.min(window.innerWidth,window.innerHeight)*(IS_MOBILE?0.62:0.42);
+  d.len=len;d.dead=len<DZ;d.pw=d.dead?0:Math.pow(clamp((len-DZ)/maxLen,0,1),1.3);
+  pwLbl.textContent=d.dead?'إلغاء':Math.round(d.pw*100)+'%';pwLbl.style.left=e.clientX+'px';pwLbl.style.top=(e.clientY-54)+'px';pwLbl.classList.toggle('on',!d.dead);pwLbl.classList.toggle('max',d.pw>=0.995);
   if(len>4){[d.dx,d.dz]=launchDir(d.yaw,dx,dy);}
   dzEl.classList.toggle('cancel',d.dead);
   dzLine.classList.toggle('on',!d.dead);dzLine.style.width=Math.max(0,len-DZ)+'px';dzLine.style.transform=`rotate(${Math.atan2(dy,dx)}rad) translateX(${DZ}px)`;
@@ -1015,7 +1020,7 @@ function endDrag(e){
   if(S.camDrag&&e.pointerId===S.camDrag.id){S.camDrag=null;return;}
   const d=S.drag;if(!d||e.pointerId!==d.id)return;
   S.drag=null;$('#power').classList.remove('on');$('#powerFill').style.height='0%';
-  dzEl.classList.remove('on');dzLine.classList.remove('on');
+  dzEl.classList.remove('on');dzLine.classList.remove('on');pwLbl.classList.remove('on');
   dots.forEach(x=>x.visible=false);arrowGroup.visible=false;
   if(d.dead||S.state!=='aim'){updateHUD();return;}
   doAction({t:'shot',dx:d.dx,dz:d.dz,pw:Math.max(0.08,d.pw),jump:S.armed.jump,boost:S.armed.power,magnet:S.armed.magnet,ghost:S.armed.ghost});
@@ -1127,7 +1132,7 @@ function update(dt,time){
   let ropeOn=false,ropeP=null,ropeDir=null;
   if(d&&S.state==='aim'){const p=cur();p.vis.set(-d.dx*d.pw*1.6,0,-d.dz*d.pw*1.6);
     ropeOn=!d.dead;ropeP=p;ropeDir=[d.dx,d.dz];
-    if(ropeOn){const r=simShot(H,p,d.dx,d.dz,Math.max(0.08,d.pw),2.8,S.armed.jump,S.armed.power,true,null,S.armed.magnet,S.armed.ghost);dots.forEach((m,i)=>{const pt=r.pts[i];m.visible=!!pt;if(pt)m.position.set(pt.x,pt.y+0.12,pt.z);});
+    if(ropeOn){const r=simShot(H,p,d.dx,d.dz,Math.max(0.08,d.pw),3.6,S.armed.jump,S.armed.power,true,null,S.armed.magnet,S.armed.ghost);dots.forEach((m,i)=>{const pt=r.pts[i];m.visible=!!pt;if(pt)m.position.set(pt.x,pt.y+0.12,pt.z);});
       arrowGroup.visible=true;arrowGroup.position.set(p.pos.x,p.pos.y+0.06,p.pos.z);arrowGroup.rotation.y=Math.atan2(d.dx,d.dz);arrow.scale.set(1,1.4+d.pw*4.5,1);arrowMat.color.setHSL(0.33-d.pw*0.33,0.9,0.6);}
     else{dots.forEach(m=>m.visible=false);arrowGroup.visible=false;}
   }
