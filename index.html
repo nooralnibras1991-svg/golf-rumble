@@ -144,7 +144,7 @@ tr.me td{color:#9a6b00;font-weight:700}
 
 <div id="start" class="overlay">
   <div class="card">
-    <h1>غولف الاندفاع</h1>
+    <h1>غولف الاندفاع <small style="font-size:12px;color:var(--muted);font-weight:500">الإصدار 20</small></h1>
     <p>اسحب كرتك للخلف كالمقلاع واتركها لتنطلق نحو الحفرة. أول من يُدخلها يأخذ أكبر النقاط ويفتح «الجولة الأخيرة»: ضربة واحدة للبقية. المهارات لا تبدأ معك: اصطدم بالصناديق المجهولة ❓ لتحصل على واحدة من 12 مهارة عشوائية، منها الحبل الذي يربط خصمين معاً واللعنة التي تحرف ضربة خصمك. احذر الفخاخ: رمل، قافز، عارضة دوّارة، مروحة، ثقب جاذب، وأشواك. اصدم الخصوم وازرع الألغام لتكسب نقاطاً. ⏱ 20 ثانية لكل دور. الفيزياء رياضية: القوة تساوي مسافة التوقف بالضبط، والكرة ترتد عن الجدران بزاوية انعكاس مساوية لزاوية السقوط وبلا فقدان للسرعة.</p>
     <div class="tabs" id="modeTabs">
       <button type="button" data-m="solo" class="on">🤖 ضد الكمبيوتر</button>
@@ -372,7 +372,7 @@ function simShot(H,p,dx,dz,pw,T,jump,boost,record,pick,magnet,ghost){
   const c={pos:p.pos.clone(),vel:V3(dx*v,0,dz*v),air:false,holed:false,wet:false,magnet:!!magnet,ghost:!!ghost};
   if(jump){c.vel.y=5+pw*7;c.air=true;}
   const dt=1/60;let t=0,i=0;const pts=[];let picks=0;const got=new Set();
-  while(t<T){physStep(c,H,dt);t+=dt;i++;if(record&&i%6===0)pts.push(c.pos.clone());if(pick&&i%2===0){for(const u of pick){if(!got.has(u)&&Math.hypot(c.pos.x-u.x,c.pos.z-u.z)<0.8){got.add(u);picks++;}}}if(c.holed||c.wet)break;if(!c.air&&c.vel.x===0&&c.vel.z===0)break;}
+  while(t<T){physStep(c,H,dt);t+=dt;i++;if(record&&i%2===0)pts.push(c.pos.clone());if(pick&&i%2===0){for(const u of pick){if(!got.has(u)&&Math.hypot(c.pos.x-u.x,c.pos.z-u.z)<0.8){got.add(u);picks++;}}}if(c.holed||c.wet)break;if(!c.air&&c.vel.x===0&&c.vel.z===0)break;}
   return {holed:c.holed,wet:c.wet,dist:Math.hypot(c.pos.x-H.hole.x,c.pos.z-H.hole.z),pts,picks};
 }
 
@@ -490,6 +490,16 @@ const pegMat=new THREE.MeshLambertMaterial({color:0x8b5a2b});
 const pegs=[0,1].map(()=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.7,8),pegMat);p.visible=false;p.castShadow=true;scene.add(p);return p;});
 const dots=[];const dotMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.75,depthTest:false});
 for(let i=0;i<44;i++){const d=new THREE.Mesh(new THREE.SphereGeometry(0.1,8,6),dotMat);d.visible=false;d.renderOrder=5;scene.add(d);dots.push(d);}
+const PATH_N=240;
+const pathGeo=new THREE.BufferGeometry();
+{const pos=new Float32Array(PATH_N*2*3);const idx=[];for(let i=0;i<PATH_N-1;i++){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}
+ pathGeo.setAttribute('position',new THREE.BufferAttribute(pos,3));pathGeo.setIndex(idx);pathGeo.setDrawRange(0,0);}
+const pathMesh=new THREE.Mesh(pathGeo,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.9,depthTest:false,side:THREE.DoubleSide}));pathMesh.renderOrder=5;pathMesh.frustumCulled=false;pathMesh.visible=false;scene.add(pathMesh);
+const stopMark=new THREE.Mesh(new THREE.RingGeometry(0.55,0.78,28),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.95,depthTest:false,side:THREE.DoubleSide}));stopMark.rotation.x=-Math.PI/2;stopMark.renderOrder=5;stopMark.visible=false;scene.add(stopMark);
+function drawPath(pts){const arr=pathGeo.attributes.position.array;const n=Math.min(pts.length,PATH_N);if(n<2){pathGeo.setDrawRange(0,0);return;}
+  for(let i=0;i<n;i++){const a=pts[i],b=pts[Math.min(n-1,i+1)],c=pts[Math.max(0,i-1)];let tx=b.x-c.x,tz=b.z-c.z;const L=Math.hypot(tx,tz)||1;tx/=L;tz/=L;const w=0.11*(1-0.5*i/n);const px=-tz*w,pz=tx*w;
+    arr[i*6]=a.x+px;arr[i*6+1]=a.y+0.08;arr[i*6+2]=a.z+pz;arr[i*6+3]=a.x-px;arr[i*6+4]=a.y+0.08;arr[i*6+5]=a.z-pz;}
+  pathGeo.attributes.position.needsUpdate=true;pathGeo.setDrawRange(0,(n-1)*6);}
 const protractor=new THREE.Group();
 {const ringM=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.5,depthTest:false,side:THREE.DoubleSide});
  const ring=new THREE.Mesh(new THREE.RingGeometry(2.3,2.4,64),ringM);ring.rotation.x=-Math.PI/2;ring.renderOrder=4;protractor.add(ring);
@@ -1057,7 +1067,7 @@ canvas.addEventListener('pointermove',e=>{
   const maxLen=Math.min(window.innerWidth,window.innerHeight)*(IS_MOBILE?0.62:0.42);
   d.len=len;d.dead=len<DZ;d.pw=d.dead?0:Math.pow(clamp((len-DZ)/maxLen,0,1),1.3);
   pwLbl.textContent=d.dead?'إلغاء':Math.round(d.pw*100)+'% · '+Math.round(d.pw*MAX_DIST)+' م · '+(d.ang!=null?Math.round(d.ang):0)+'°';pwLbl.style.left=e.clientX+'px';pwLbl.style.top=(e.clientY-54)+'px';pwLbl.classList.toggle('on',!d.dead);pwLbl.classList.toggle('max',d.pw>=0.995);
-  if(len>4){const bp=cur();const hit=bp?groundHit(e.clientX,e.clientY,bp.pos.y+R):null;let ok=false;if(hit){const vx=bp.pos.x-hit.x,vz=bp.pos.z-hit.z;const L=Math.hypot(vx,vz);if(L>0.05){d.dx=vx/L;d.dz=vz/L;ok=true;}}if(!ok){[d.dx,d.dz]=launchDir(d.yaw,dx,dy);}const sn=snapAngle(d.dx,d.dz);d.dx=sn[0];d.dz=sn[1];d.ang=sn[2];}
+  if(len>4){const bp=cur();const hit=bp?groundHit(e.clientX,e.clientY,bp.pos.y+R):null;let ok=false;if(hit){const vx=bp.pos.x-hit.x,vz=bp.pos.z-hit.z;const L=Math.hypot(vx,vz);if(L>0.05){d.dx=vx/L;d.dz=vz/L;ok=true;}}if(!ok){[d.dx,d.dz]=launchDir(d.yaw,dx,dy);}if(d.sdx==null){d.sdx=d.dx;d.sdz=d.dz;}else{d.sdx+=(d.dx-d.sdx)*0.5;d.sdz+=(d.dz-d.sdz)*0.5;}const sn=snapAngle(d.sdx,d.sdz);d.dx=sn[0];d.dz=sn[1];d.ang=sn[2];}
   dzEl.classList.toggle('cancel',d.dead);
   dzLine.classList.toggle('on',!d.dead);dzLine.style.width=Math.max(0,len-DZ)+'px';dzLine.style.transform=`rotate(${Math.atan2(dy,dx)}rad) translateX(${DZ}px)`;
   $('#powerFill').style.height=(d.pw*100).toFixed(0)+'%';
@@ -1067,7 +1077,7 @@ function endDrag(e){
   const d=S.drag;if(!d||e.pointerId!==d.id)return;
   S.drag=null;$('#power').classList.remove('on');$('#powerFill').style.height='0%';
   dzEl.classList.remove('on');dzLine.classList.remove('on');pwLbl.classList.remove('on');
-  dots.forEach(x=>x.visible=false);arrowGroup.visible=false;protractor.visible=false;
+  pathMesh.visible=false;stopMark.visible=false;arrowGroup.visible=false;protractor.visible=false;
   if(d.dead||S.state!=='aim'){updateHUD();return;}
   doAction({t:'shot',dx:d.dx,dz:d.dz,pw:Math.max(0.08,d.pw),jump:S.armed.jump,boost:S.armed.power,magnet:S.armed.magnet,ghost:S.armed.ghost});
 }
@@ -1183,10 +1193,10 @@ function update(dt,time){
   let ropeOn=false,ropeP=null,ropeDir=null;
   if(d&&S.state==='aim'){const p=cur();p.vis.set(-d.dx*d.pw*1.6,0,-d.dz*d.pw*1.6);
     ropeOn=!d.dead;ropeP=p;ropeDir=[d.dx,d.dz];
-    if(ropeOn){const r=simShot(H,p,d.dx,d.dz,Math.max(0.08,d.pw),5.5,S.armed.jump,S.armed.power,true,null,S.armed.magnet,S.armed.ghost);dots.forEach((m,i)=>{const pt=r.pts[i];m.visible=!!pt;if(pt)m.position.set(pt.x,pt.y+0.12,pt.z);});
+    if(ropeOn){const r=simShot(H,p,d.dx,d.dz,Math.max(0.08,d.pw),5.5,S.armed.jump,S.armed.power,true,null,S.armed.magnet,S.armed.ghost);drawPath(r.pts);pathMesh.visible=r.pts.length>1;const last=r.pts[r.pts.length-1];if(last){stopMark.visible=true;stopMark.position.set(last.x,last.y+0.06,last.z);}else stopMark.visible=false;
       protractor.visible=true;protractor.position.set(p.pos.x,p.pos.y+0.05,p.pos.z);
       arrowGroup.visible=true;arrowGroup.position.set(p.pos.x,p.pos.y+0.06,p.pos.z);arrowGroup.rotation.y=Math.atan2(d.dx,d.dz);arrow.scale.set(1,1.4+d.pw*4.5,1);arrowMat.color.setHSL(0.33-d.pw*0.33,0.9,0.6);}
-    else{dots.forEach(m=>m.visible=false);arrowGroup.visible=false;protractor.visible=false;}
+    else{pathMesh.visible=false;stopMark.visible=false;arrowGroup.visible=false;protractor.visible=false;}
   }
   if(S.botPull){ropeOn=true;ropeP=S.botPull.p;ropeDir=[S.botPull.dx,S.botPull.dz];}
   rope1.visible=rope2.visible=pegs[0].visible=pegs[1].visible=ropeOn;
