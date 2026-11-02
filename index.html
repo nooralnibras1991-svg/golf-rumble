@@ -482,6 +482,12 @@ const pegMat=new THREE.MeshLambertMaterial({color:0x8b5a2b});
 const pegs=[0,1].map(()=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.7,8),pegMat);p.visible=false;p.castShadow=true;scene.add(p);return p;});
 const dots=[];const dotMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.75,depthTest:false});
 for(let i=0;i<30;i++){const d=new THREE.Mesh(new THREE.SphereGeometry(0.1,8,6),dotMat);d.visible=false;d.renderOrder=5;scene.add(d);dots.push(d);}
+const protractor=new THREE.Group();
+{const ringM=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.5,depthTest:false,side:THREE.DoubleSide});
+ const ring=new THREE.Mesh(new THREE.RingGeometry(2.3,2.4,64),ringM);ring.rotation.x=-Math.PI/2;ring.renderOrder=4;protractor.add(ring);
+ for(let k=0;k<24;k++){const big=k%6===0,mid=k%3===0;const len=big?0.7:mid?0.45:0.25;const w=big?0.09:0.05;const t=new THREE.Mesh(new THREE.PlaneGeometry(w,len),new THREE.MeshBasicMaterial({color:big?0xffcc33:0xffffff,transparent:true,opacity:big?0.95:0.6,depthTest:false,side:THREE.DoubleSide}));
+   const a=k*Math.PI/12;t.position.set(Math.sin(a)*(2.4+len/2),0,-Math.cos(a)*(2.4+len/2));t.rotation.x=-Math.PI/2;t.rotation.z=-a;t.renderOrder=4;protractor.add(t);}
+ protractor.visible=false;scene.add(protractor);}
 const arrowGroup=new THREE.Group();const arrowGeo=new THREE.PlaneGeometry(0.8,1);arrowGeo.translate(0,0.5,0);
 const arrowMat=new THREE.MeshBasicMaterial({map:arrowTexture(),transparent:true,opacity:0.9,depthTest:false,side:THREE.DoubleSide,color:0xffffff});
 const arrow=new THREE.Mesh(arrowGeo,arrowMat);arrow.rotation.x=Math.PI/2;arrow.renderOrder=4;arrowGroup.add(arrow);arrowGroup.visible=false;scene.add(arrowGroup);
@@ -1011,6 +1017,7 @@ netInit();
 function launchDir(yaw,dx,dy){const x=Math.cos(yaw)*dx+Math.sin(yaw)*dy,z=-Math.sin(yaw)*dx+Math.cos(yaw)*dy;const l=Math.hypot(x,z)||1;return [x/l,z/l];}
 const DZ=IS_MOBILE?30:38,HIT=IS_MOBILE?84:64;
 const _ray=new THREE.Raycaster(),_ndc=new THREE.Vector2(),_plane=new THREE.Plane(),_hit=new THREE.Vector3(),_pn=new THREE.Vector3(0,1,0);
+function snapAngle(dx,dz){let a=Math.atan2(dx,-dz)*180/Math.PI;a=((a%360)+360)%360;const near45=Math.round(a/45)*45;if(Math.abs(((a-near45+540)%360)-180)<=4)a=near45;else a=Math.round(a/5)*5;a=((a%360)+360)%360;const r=a*Math.PI/180;return [Math.sin(r),-Math.cos(r),a];}
 function groundHit(cx,cy,y){_ndc.set(cx/window.innerWidth*2-1,-(cy/window.innerHeight)*2+1);_ray.setFromCamera(_ndc,camera);_plane.set(_pn,-y);return _ray.ray.intersectPlane(_plane,_hit)?_hit:null;}
 const pwLbl=document.getElementById('pwLbl');
 const dzEl=$('#dz'),dzLine=$('#dzLine'),ringEl=$('#ballRing');
@@ -1038,8 +1045,8 @@ canvas.addEventListener('pointermove',e=>{
   const dx=e.clientX-d.x0,dy=e.clientY-d.y0;const len=Math.hypot(dx,dy);
   const maxLen=Math.min(window.innerWidth,window.innerHeight)*(IS_MOBILE?0.62:0.42);
   d.len=len;d.dead=len<DZ;d.pw=d.dead?0:Math.pow(clamp((len-DZ)/maxLen,0,1),1.3);
-  pwLbl.textContent=d.dead?'إلغاء':Math.round(d.pw*100)+'%';pwLbl.style.left=e.clientX+'px';pwLbl.style.top=(e.clientY-54)+'px';pwLbl.classList.toggle('on',!d.dead);pwLbl.classList.toggle('max',d.pw>=0.995);
-  if(len>4){const bp=cur();const hit=bp?groundHit(e.clientX,e.clientY,bp.pos.y+R):null;let ok=false;if(hit){const vx=bp.pos.x-hit.x,vz=bp.pos.z-hit.z;const L=Math.hypot(vx,vz);if(L>0.05){d.dx=vx/L;d.dz=vz/L;ok=true;}}if(!ok){[d.dx,d.dz]=launchDir(d.yaw,dx,dy);}}
+  pwLbl.textContent=d.dead?'إلغاء':Math.round(d.pw*100)+'% · '+(d.ang!=null?Math.round(d.ang):0)+'°';pwLbl.style.left=e.clientX+'px';pwLbl.style.top=(e.clientY-54)+'px';pwLbl.classList.toggle('on',!d.dead);pwLbl.classList.toggle('max',d.pw>=0.995);
+  if(len>4){const bp=cur();const hit=bp?groundHit(e.clientX,e.clientY,bp.pos.y+R):null;let ok=false;if(hit){const vx=bp.pos.x-hit.x,vz=bp.pos.z-hit.z;const L=Math.hypot(vx,vz);if(L>0.05){d.dx=vx/L;d.dz=vz/L;ok=true;}}if(!ok){[d.dx,d.dz]=launchDir(d.yaw,dx,dy);}const sn=snapAngle(d.dx,d.dz);d.dx=sn[0];d.dz=sn[1];d.ang=sn[2];}
   dzEl.classList.toggle('cancel',d.dead);
   dzLine.classList.toggle('on',!d.dead);dzLine.style.width=Math.max(0,len-DZ)+'px';dzLine.style.transform=`rotate(${Math.atan2(dy,dx)}rad) translateX(${DZ}px)`;
   $('#powerFill').style.height=(d.pw*100).toFixed(0)+'%';
@@ -1049,7 +1056,7 @@ function endDrag(e){
   const d=S.drag;if(!d||e.pointerId!==d.id)return;
   S.drag=null;$('#power').classList.remove('on');$('#powerFill').style.height='0%';
   dzEl.classList.remove('on');dzLine.classList.remove('on');pwLbl.classList.remove('on');
-  dots.forEach(x=>x.visible=false);arrowGroup.visible=false;
+  dots.forEach(x=>x.visible=false);arrowGroup.visible=false;protractor.visible=false;
   if(d.dead||S.state!=='aim'){updateHUD();return;}
   doAction({t:'shot',dx:d.dx,dz:d.dz,pw:Math.max(0.08,d.pw),jump:S.armed.jump,boost:S.armed.power,magnet:S.armed.magnet,ghost:S.armed.ghost});
 }
@@ -1161,8 +1168,9 @@ function update(dt,time){
   if(d&&S.state==='aim'){const p=cur();p.vis.set(-d.dx*d.pw*1.6,0,-d.dz*d.pw*1.6);
     ropeOn=!d.dead;ropeP=p;ropeDir=[d.dx,d.dz];
     if(ropeOn){const r=simShot(H,p,d.dx,d.dz,Math.max(0.08,d.pw),3.6,S.armed.jump,S.armed.power,true,null,S.armed.magnet,S.armed.ghost);dots.forEach((m,i)=>{const pt=r.pts[i];m.visible=!!pt;if(pt)m.position.set(pt.x,pt.y+0.12,pt.z);});
+      protractor.visible=true;protractor.position.set(p.pos.x,p.pos.y+0.05,p.pos.z);
       arrowGroup.visible=true;arrowGroup.position.set(p.pos.x,p.pos.y+0.06,p.pos.z);arrowGroup.rotation.y=Math.atan2(d.dx,d.dz);arrow.scale.set(1,1.4+d.pw*4.5,1);arrowMat.color.setHSL(0.33-d.pw*0.33,0.9,0.6);}
-    else{dots.forEach(m=>m.visible=false);arrowGroup.visible=false;}
+    else{dots.forEach(m=>m.visible=false);arrowGroup.visible=false;protractor.visible=false;}
   }
   if(S.botPull){ropeOn=true;ropeP=S.botPull.p;ropeDir=[S.botPull.dx,S.botPull.dz];}
   rope1.visible=rope2.visible=pegs[0].visible=pegs[1].visible=ropeOn;
