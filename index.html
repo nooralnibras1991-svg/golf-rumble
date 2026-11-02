@@ -46,10 +46,13 @@ body{background:var(--sky);color:var(--fg);font-family:var(--font);direction:rtl
 .pl.holed{opacity:.55}
 .pl b{font-weight:800}
 .pl .muted{color:var(--muted)}
+.mrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-weight:700}
+.mrow .mini{width:46px;height:40px;border:1px solid var(--line);background:#fff;border-radius:12px;font-size:18px;cursor:pointer}
+.mrow small{display:block;font-weight:500;color:var(--muted);font-size:12px}
 #inbox{position:fixed;top:calc(140px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:var(--panel-strong);border:2px solid var(--coral);color:var(--fg);padding:10px 16px;border-radius:14px;font-weight:700;font-size:14px;max-width:calc(100% - 40px);text-align:center;z-index:6;box-shadow:var(--shadow);cursor:pointer}
 #inbox small{display:block;color:var(--muted);font-weight:500;font-size:11px;margin-top:4px}
 #msgTo .pl.on{outline:2px solid var(--accent)}
-#qBtn,#msgBtn,#sndBtn,#ovBtn{pointer-events:auto;background:var(--panel);border:0;border-radius:12px;width:40px;height:40px;font-size:18px;cursor:pointer;box-shadow:var(--shadow);flex:none}
+#menuBtn,#msgBtn,#ovBtn{pointer-events:auto;background:var(--panel);border:0;border-radius:12px;width:40px;height:40px;font-size:18px;cursor:pointer;box-shadow:var(--shadow);flex:none}
 .bottom{display:flex;flex-direction:column;gap:8px;align-items:stretch}
 #hint{text-align:center;font-size:14px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.45);font-weight:700}
 #skills{display:flex;gap:8px;justify-content:center;pointer-events:auto;overflow-x:auto;padding:6px 2px 2px}
@@ -125,7 +128,7 @@ tr.me td{color:#9a6b00;font-weight:700}
     </div>
     <div class="row">
       <div id="players"></div>
-      <div style="display:flex;gap:6px"><button id="msgBtn" type="button" title="رسالة سرية" class="hidden">💬</button><button id="qBtn" type="button" title="جودة الرسوم">🅼</button><button id="sndBtn" type="button" title="الصوت">🔊</button><button id="ovBtn" type="button" title="نظرة علوية">🗺️</button></div>
+      <div style="display:flex;gap:6px"><button id="menuBtn" type="button" title="القائمة">☰</button><button id="msgBtn" type="button" title="رسالة سرية" class="hidden">💬</button><button id="ovBtn" type="button" title="نظرة علوية">🗺️</button></div>
     </div>
   </div>
   <div class="bottom">
@@ -199,6 +202,18 @@ tr.me td{color:#9a6b00;font-weight:700}
     <h2 id="boardTitle">نتيجة الحفرة</h2>
     <table><thead><tr><th>اللاعب</th><th style="text-align:center">الحفرة: ضربات / نقاط</th><th style="text-align:center">النقاط (الضربات)</th></tr></thead><tbody id="boardBody"></tbody></table>
     <button class="btn" id="nextBtn" type="button">الحفرة التالية</button>
+  </div>
+</div>
+
+<div id="menu" class="overlay hidden">
+  <div class="card">
+    <h2>☰ القائمة</h2>
+    <div class="mrow"><div>الصوت والموسيقى</div><button id="sndBtn" class="mini" type="button" title="الصوت">🔊</button></div>
+    <div class="mrow"><div>جودة الرسوم<small>🅷 عالية · 🅼 متوسطة · 🅻 منخفضة وأسرع</small></div><button id="qBtn" class="mini" type="button" title="جودة الرسوم">🅼</button></div>
+    <div class="mrow"><div>رسالة سرية<small id="menuMsgHint">متاحة في وضع الأونلاين</small></div><button id="menuMsg" class="mini" type="button">💬</button></div>
+    <button class="btn" id="menuResume" type="button" style="margin-top:14px">▶️ استئناف</button>
+    <button class="btn ghost" id="menuHome" type="button">🏠 الشاشة الرئيسية</button>
+    <button class="btn ghost" id="menuExit" type="button">🚪 خروج</button>
   </div>
 </div>
 
@@ -593,7 +608,7 @@ function makePlayers(list){
 }
 function startSolo(){S.mode='solo';makePlayers([{name:'أنت',kind:'human'},...BOT_NAMES.slice(0,botCount).map(n=>({name:n,kind:'bot'}))]);beginGame();}
 function startLocal(){S.mode='local';const l=[];for(let i=0;i<humCount;i++)l.push({name:`لاعب ${i+1}`,kind:'human'});BOT_NAMES.slice(0,botCount2).forEach(n=>l.push({name:n,kind:'bot'}));makePlayers(l);beginGame();}
-function beginGame(){$('#start').classList.add('hidden');$('#lobby').classList.add('hidden');S.shots=0;loadHole(0);}
+function beginGame(){$('#start').classList.add('hidden');$('#lobby').classList.add('hidden');S.shots=0;try{if(!history.state||!history.state.g)history.pushState({g:1},'');}catch(e){}loadHole(0);}
 
 function cur(){return S.players[S.cur];}
 function addRope(a,b,left){
@@ -933,6 +948,17 @@ function openMsgBox(){if(!NET.room)return;const list=S.players.length?S.players.
   $('#msgTo').onclick=e=>{const el=e.target.closest('.pl');if(!el)return;msgSel=el.dataset.peer;[...$('#msgTo').children].forEach(x=>x.classList.toggle('on',x===el));};
   $('#msgText').value='';$('#msgBox').classList.remove('hidden');}
 $('#msgBtn').addEventListener('click',openMsgBox);
+function openMenu(){$('#menuMsg').disabled=!NET.room;$('#menuMsgHint').textContent=NET.room?'أرسل رسالة لا يقرأها إلا المستلم':'متاحة في وضع الأونلاين';$('#menu').classList.remove('hidden');}
+function goHome(){clearTimeout(S.autoNext);['#menu','#board','#picker','#msgBox','#lobby','#inbox'].forEach(x=>$(x).classList.add('hidden'));
+  if(NET.room){NET.unsub.forEach(u=>{try{u();}catch(e){}});NET.unsub=[];try{NET.room.leave();}catch(e){}NET.room=null;$('#msgBtn').classList.add('hidden');}
+  S.players.forEach(q=>{q.model.g.visible=false;q.label.visible=false;});S.ropes.forEach(r=>scene.remove(r.line));S.ropes=[];S.drag=null;S.botPull=null;S.state='start';S.cur=-1;S.mode='solo';
+  $('#start').classList.remove('hidden');updateHUD();}
+$('#menuBtn').addEventListener('click',openMenu);
+$('#menuResume').addEventListener('click',()=>$('#menu').classList.add('hidden'));
+$('#menuMsg').addEventListener('click',()=>{$('#menu').classList.add('hidden');openMsgBox();});
+$('#menuHome').addEventListener('click',goHome);
+$('#menuExit').addEventListener('click',()=>{goHome();try{window.close();}catch(e){}});
+window.addEventListener('popstate',()=>{if(S.state!=='start'&&S.H){if($('#menu').classList.contains('hidden'))openMenu();else $('#menu').classList.add('hidden');history.pushState({g:1},'');}});
 $('#msgCancel').addEventListener('click',()=>$('#msgBox').classList.add('hidden'));
 $('#msgSend').addEventListener('click',()=>{const text=($('#msgText').value||'').trim().slice(0,100);if(!text||!msgSel||!NET.room)return;$('#msgBox').classList.add('hidden');NET.room.emit('msg',{to:msgSel,text}).then(()=>toast('✉️ أُرسلت الرسالة السرية إلى '+nameOfPeer(msgSel))).catch(()=>toast('تعذر إرسال الرسالة'));});
 function onNetStart(data){
@@ -984,6 +1010,8 @@ netInit();
 // ---------- input (slingshot drag) ----------
 function launchDir(yaw,dx,dy){const x=Math.cos(yaw)*dx+Math.sin(yaw)*dy,z=-Math.sin(yaw)*dx+Math.cos(yaw)*dy;const l=Math.hypot(x,z)||1;return [x/l,z/l];}
 const DZ=IS_MOBILE?30:38,HIT=IS_MOBILE?84:64;
+const _ray=new THREE.Raycaster(),_ndc=new THREE.Vector2(),_plane=new THREE.Plane(),_hit=new THREE.Vector3(),_pn=new THREE.Vector3(0,1,0);
+function groundHit(cx,cy,y){_ndc.set(cx/window.innerWidth*2-1,-(cy/window.innerHeight)*2+1);_ray.setFromCamera(_ndc,camera);_plane.set(_pn,-y);return _ray.ray.intersectPlane(_plane,_hit)?_hit:null;}
 const pwLbl=document.getElementById('pwLbl');
 const dzEl=$('#dz'),dzLine=$('#dzLine'),ringEl=$('#ballRing');
 function ballScreenPos(){const p=S.cur>=0?cur():null;if(!p||!p.spawned)return null;const v=p.model.g.position.clone();v.y+=R;v.project(camera);if(v.z>1)return null;return {x:(v.x+1)/2*window.innerWidth,y:(1-v.y)/2*window.innerHeight};}
@@ -1011,7 +1039,7 @@ canvas.addEventListener('pointermove',e=>{
   const maxLen=Math.min(window.innerWidth,window.innerHeight)*(IS_MOBILE?0.62:0.42);
   d.len=len;d.dead=len<DZ;d.pw=d.dead?0:Math.pow(clamp((len-DZ)/maxLen,0,1),1.3);
   pwLbl.textContent=d.dead?'إلغاء':Math.round(d.pw*100)+'%';pwLbl.style.left=e.clientX+'px';pwLbl.style.top=(e.clientY-54)+'px';pwLbl.classList.toggle('on',!d.dead);pwLbl.classList.toggle('max',d.pw>=0.995);
-  if(len>4){[d.dx,d.dz]=launchDir(d.yaw,dx,dy);}
+  if(len>4){const bp=cur();const hit=bp?groundHit(e.clientX,e.clientY,bp.pos.y+R):null;let ok=false;if(hit){const vx=bp.pos.x-hit.x,vz=bp.pos.z-hit.z;const L=Math.hypot(vx,vz);if(L>0.05){d.dx=vx/L;d.dz=vz/L;ok=true;}}if(!ok){[d.dx,d.dz]=launchDir(d.yaw,dx,dy);}}
   dzEl.classList.toggle('cancel',d.dead);
   dzLine.classList.toggle('on',!d.dead);dzLine.style.width=Math.max(0,len-DZ)+'px';dzLine.style.transform=`rotate(${Math.atan2(dy,dx)}rad) translateX(${DZ}px)`;
   $('#powerFill').style.height=(d.pw*100).toFixed(0)+'%';
@@ -1080,7 +1108,7 @@ function applyQuality(level,silent){Q.level=level;try{localStorage.setItem('golf
   Q.particles=level==='low'?120:level==='medium'?250:600;Q.trail=level!=='low';
   resize();const qb=document.getElementById('qBtn');if(qb)qb.textContent=level==='high'?'🅷':level==='medium'?'🅼':'🅻';
   if(!silent)toast(level==='high'?'الجودة: عالية':level==='medium'?'الجودة: متوسطة':'الجودة: منخفضة (أسرع)');}
-function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setPixelRatio(qualityRatio());renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setPixelRatio(qualityRatio());renderer.setSize(w,h,false);camera.aspect=w/h;camera.fov=w/h<0.8?64:56;camera.updateProjectionMatrix();}
 Q.level=detectQuality();
 window.addEventListener('resize',resize);applyQuality(Q.level,true);
 
@@ -1175,15 +1203,15 @@ function update(dt,time){
   const p=S.cur>=0?cur():S.players[0];
   const focus=S.state==='moving'&&S.shotBy&&!S.shotBy.sunk?S.shotBy:p;
   if(S.overview){
-    const hy=Math.max(H.w,H.l)*1.15;
-    S.camPos.lerp(V3(0,hy,H.l*0.12),1-Math.exp(-5*dt));S.camTgt.lerp(V3(0,0,0),1-Math.exp(-5*dt));
+    const vt=Math.tan(camera.fov*Math.PI/360);const ext=6;const hy=Math.max((H.l/2+ext)/vt,(H.w/2+ext)/(vt*Math.max(0.2,camera.aspect)))*1.04;
+    S.camPos.lerp(V3(0,hy,hy*0.03),1-Math.exp(-5*dt));S.camTgt.lerp(V3(0,0,0),1-Math.exp(-5*dt));
   }else if(focus){
     let desired=S.camYaw;
     if(!d&&S.state==='moving'&&performance.now()-S.camUserT>1500){const sp=Math.hypot(focus.vel.x,focus.vel.z);if(sp>1.5)desired=Math.atan2(focus.vel.x,focus.vel.z);}
     S.camYaw=lerpAngle(S.camYaw,desired,1-Math.exp(-3.5*dt));
     const fwd=V3(Math.sin(S.camYaw),0,Math.cos(S.camYaw)),right=V3(-Math.cos(S.camYaw),0,Math.sin(S.camYaw));
     const fp=focus.model.g.position;
-    const pt=S.camPitch;const wantPos=V3().copy(fp).addScaledVector(fwd,-7.2*(0.75+0.25*pt)).addScaledVector(right,0.9).add(V3(0,4.4*pt,0));
+    const pt=S.camPitch,pf=camera.aspect<0.8?1.22:1;const wantPos=V3().copy(fp).addScaledVector(fwd,-7.2*pf*(0.75+0.25*pt)).addScaledVector(right,0.9).add(V3(0,4.4*pf*pt,0));
     wantPos.y=Math.max(wantPos.y,heightAt(H,clamp(wantPos.x,-H.w/2,H.w/2),clamp(wantPos.z,-H.l/2,H.l/2))+1.4);
     const wantTgt=V3().copy(fp).addScaledVector(fwd,7*(1.3-0.3*pt)).add(V3(0,0.3,0));
     const k=1-Math.exp(-6*dt);S.camPos.lerp(wantPos,k);S.camTgt.lerp(wantTgt,k);
