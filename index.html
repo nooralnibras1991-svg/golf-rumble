@@ -1028,7 +1028,7 @@ netInit();
 function launchDir(yaw,dx,dy){const x=Math.cos(yaw)*dx+Math.sin(yaw)*dy,z=-Math.sin(yaw)*dx+Math.cos(yaw)*dy;const l=Math.hypot(x,z)||1;return [x/l,z/l];}
 const DZ=IS_MOBILE?30:38,HIT=IS_MOBILE?84:64;
 const _ray=new THREE.Raycaster(),_ndc=new THREE.Vector2(),_plane=new THREE.Plane(),_hit=new THREE.Vector3(),_pn=new THREE.Vector3(0,1,0);
-function snapAngle(dx,dz){let a=Math.atan2(dx,-dz)*180/Math.PI;a=((a%360)+360)%360;const near45=Math.round(a/45)*45;if(Math.abs(((a-near45+540)%360)-180)<=4)a=near45;else a=Math.round(a/5)*5;a=((a%360)+360)%360;const r=a*Math.PI/180;return [Math.sin(r),-Math.cos(r),a];}
+function snapAngle(dx,dz){const L=Math.hypot(dx,dz)||1;dx/=L;dz/=L;let a=Math.atan2(dx,-dz)*180/Math.PI;a=((a%360)+360)%360;return [dx,dz,a];}
 function groundHit(cx,cy,y){_ndc.set(cx/window.innerWidth*2-1,-(cy/window.innerHeight)*2+1);_ray.setFromCamera(_ndc,camera);_plane.set(_pn,-y);return _ray.ray.intersectPlane(_plane,_hit)?_hit:null;}
 const pwLbl=document.getElementById('pwLbl');
 const dzEl=$('#dz'),dzLine=$('#dzLine'),ringEl=$('#ballRing');
