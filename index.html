@@ -54,8 +54,9 @@ body{background:var(--sky);color:var(--fg);font-family:var(--font);direction:rtl
 #hint{text-align:center;font-size:14px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.45);font-weight:700}
 #skills{display:flex;gap:8px;justify-content:center;pointer-events:auto;overflow-x:auto;padding:6px 2px 2px}
 #skills::-webkit-scrollbar{display:none}
-.sk{flex:0 0 auto;width:50px;height:60px;background:var(--panel-strong);border:0;color:var(--fg);border-radius:16px;padding:4px 2px;font-family:var(--font);font-weight:700;font-size:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;position:relative;box-shadow:var(--shadow)}
-.sk .ic{font-size:22px;line-height:1}
+.nosk{background:var(--panel);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:700;color:var(--muted);box-shadow:var(--shadow);text-align:center}
+.sk{flex:0 0 auto;width:62px;height:70px;background:var(--panel-strong);border:0;color:var(--fg);border-radius:16px;padding:4px 2px;font-family:var(--font);font-weight:700;font-size:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;position:relative;box-shadow:var(--shadow)}
+.sk .ic{font-size:28px;line-height:1}
 .sk .n{position:absolute;top:-5px;left:-3px;background:var(--coral);color:#fff;border-radius:999px;font-size:10px;min-width:17px;height:17px;line-height:17px;text-align:center;font-weight:800}
 .sk:disabled{opacity:.35;cursor:default}
 .sk.armed{background:var(--accent)}
@@ -782,7 +783,9 @@ function updateHUD(){
   ti.classList.toggle('me',!!(p&&p.kind==='human'));
   $('#strokeInfo').textContent=p?`ضربات: ${p.strokes}`:'';
   $('#players').innerHTML=S.players.map(q=>`<div class="pl ${q===p?'cur':''} ${q.holed?'holed':''}"><span class="dot" style="background:${hex(q.color)}"></span>${q.name} <b>${q.pts}★</b> <span style="color:var(--muted)">${q.strokes}</span>${q.holed?' ⛳':''}${q.frozen?' ❄️':''}${q.shield?' 🛡️':''}</div>`).join('');
-  $('#skills').innerHTML=Object.keys(SKILLS).map(k=>`<button type="button" class="sk ${S.armed[k]?'armed':''}" data-k="${k}" ${(!mine||p.sk[k]<=0)?'disabled':''}><span class="ic">${SKILLS[k].icon}</span>${SKILLS[k].name}<span class="n">${p?p.sk[k]:0}</span></button>`).join('');
+  {const owner=(p&&p.kind==='human')?p:(S.mode==='local'?null:S.players.find(q=>q.kind==='human'));
+   const keys=owner?Object.keys(SKILLS).filter(k=>owner.sk[k]>0):[];
+   $('#skills').innerHTML=keys.length?keys.map(k=>`<button type="button" class="sk ${S.armed[k]?'armed':''}" data-k="${k}" ${!mine?'disabled':''}><span class="ic">${SKILLS[k].icon}</span>${SKILLS[k].name}<span class="n">${owner.sk[k]}</span></button>`).join(''):(owner?'<div class="nosk">لا مهارات بعد · اصطدم بالصناديق ❓ لتكسبها</div>':'');}
   $('#hint').textContent=S.state==='aim'?(mine?(S.overview?'أغلق النظرة العلوية ثم اسحب للتسديد':'اضغط على الكرة واسحب للخلف للتسديد · اسحب الشاشة لتدوير الكاميرا'):`${p?p.name:''} ${p&&p.kind==='remote'?'يسدد الآن…':'يستعد للتسديد…'}`):'';
   $('#tut').classList.toggle('on',mine&&!S.overview&&S.shots===0&&!S.drag);
   $('#msgBtn').classList.toggle('hidden',!NET.room);
