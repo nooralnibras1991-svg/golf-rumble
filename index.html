@@ -317,18 +317,25 @@ function physStep(b,H,dt,ev){
     if(b.pos.y<=g&&b.vel.y<0){b.pos.y=g;b.vel.x*=0.85;b.vel.z*=0.85;if(b.vel.y<-2.5){b.vel.y*=-0.35;}else{b.vel.y=0;b.air=false;}}
   }else{
     const [gx,gz]=gradAt(H,b.pos.x,b.pos.z);
-    b.vel.x-=G*gx*dt; b.vel.z-=G*gz*dt;
+    let ax=-G*gx,az=-G*gz,fr=FRIC;
+    if(H.traps)for(const t of H.traps){
+      if(t.type==='sand'){if(Math.hypot(b.pos.x-t.x,b.pos.z-t.z)<t.r)fr+=7;}
+      else if(t.type==='wind'){if(Math.abs(b.pos.x-t.x)<t.w/2&&Math.abs(b.pos.z-t.z)<t.l/2){ax+=t.fx*t.f;az+=t.fz*t.f;}}
+      else if(t.type==='well'){const wx=t.x-b.pos.x,wz=t.z-b.pos.z;const wd=Math.hypot(wx,wz);if(wd<t.r&&wd>0.01){const pull=14*(1-wd/t.r)+3;ax+=wx/wd*pull;az+=wz/wd*pull;}}
+    }
+    if(b.magnet){const mx=H.hole.x-b.pos.x,mz=H.hole.z-b.pos.z;const md=Math.hypot(mx,mz);if(md<9&&md>0.01){ax+=mx/md*10;az+=mz/md*10;}}
+    b.vel.x+=ax*dt; b.vel.z+=az*dt;
     const sp=Math.hypot(b.vel.x,b.vel.z);
-    if(sp>0){const ns=Math.max(0,sp-FRIC*dt);b.vel.x*=ns/sp;b.vel.z*=ns/sp;}
-    if(Math.hypot(b.vel.x,b.vel.z)<0.1&&Math.hypot(gx,gz)<0.08){b.vel.x=0;b.vel.z=0;}
+    if(sp>0){const ns=Math.max(0,sp-fr*dt);b.vel.x*=ns/sp;b.vel.z*=ns/sp;}
+    if(Math.hypot(b.vel.x,b.vel.z)<0.12&&Math.hypot(ax,az)<fr){b.vel.x=0;b.vel.z=0;}
     b.pos.x+=b.vel.x*dt; b.pos.z+=b.vel.z*dt;
     b.pos.y=heightAt(H,b.pos.x,b.pos.z);
   }
   if(H.traps)for(const t of H.traps){
-    if(t.type==='sand'){if(!b.air&&Math.hypot(b.pos.x-t.x,b.pos.z-t.z)<t.r){const sp=Math.hypot(b.vel.x,b.vel.z);if(sp>0){const ns=Math.max(0,sp-7*dt);b.vel.x*=ns/sp;b.vel.z*=ns/sp;}}}
+    if(t.type==='sand'){}
     else if(t.type==='bump'){if(b.pos.y<heightAt(H,t.x,t.z)+1.0){let dx=b.pos.x-t.x,dz=b.pos.z-t.z;const d=Math.hypot(dx,dz),m=t.r+R;if(d<m&&d>1e-6){dx/=d;dz/=d;b.pos.x+=dx*(m-d);b.pos.z+=dz*(m-d);b.vel.set(dx*13,6,dz*13);b.air=true;if(ev)ev.push('bump');}}}
-    else if(t.type==='wind'){if(!b.air&&Math.abs(b.pos.x-t.x)<t.w/2&&Math.abs(b.pos.z-t.z)<t.l/2){b.vel.x+=t.fx*t.f*dt;b.vel.z+=t.fz*t.f*dt;}}
-    else if(t.type==='well'){const wx=t.x-b.pos.x,wz=t.z-b.pos.z;const wd=Math.hypot(wx,wz);if(wd<t.r&&wd>0.01){const pull=14*(1-wd/t.r)+3;b.vel.x+=wx/wd*pull*dt;b.vel.z+=wz/wd*pull*dt;if(!b.air&&wd<0.7&&Math.hypot(b.vel.x,b.vel.z)<3){b.wet=true;b.wetT=0;b.vel.set(0,0,0);if(ev)ev.push('well');}}}
+    else if(t.type==='wind'){}
+    else if(t.type==='well'){const wx=t.x-b.pos.x,wz=t.z-b.pos.z;const wd=Math.hypot(wx,wz);if(!b.air&&wd<0.7&&Math.hypot(b.vel.x,b.vel.z)<3){b.wet=true;b.wetT=0;b.vel.set(0,0,0);if(ev)ev.push('well');}}
     else if(t.type==='spikes'){const up=(((H.t||0)%t.period)+t.period)%t.period<t.period*0.5;if(up&&!b.air&&Math.abs(b.pos.x-t.x)<t.w/2+R&&Math.abs(b.pos.z-t.z)<t.l/2+R){const sp=Math.hypot(b.vel.x,b.vel.z)||1;const ux=t.w>t.l?0:(b.pos.x<t.x?-1:1),uz=t.w>t.l?(b.pos.z<t.z?-1:1):0;b.vel.set(ux*Math.max(6,sp*0.8),5,uz*Math.max(6,sp*0.8));b.air=true;b.pos.x+=ux*0.3;b.pos.z+=uz*0.3;if(!b.spikeHit){b.spikeHit=true;if(ev)ev.push('spike');}}}
     else if(t.type==='spin'){if(!b.ghost&&b.pos.y<heightAt(H,t.x,t.z)+1.0){const a=(H.t||0)*t.speed;const ux=Math.cos(a),uz=Math.sin(a);const rx=b.pos.x-t.x,rz=b.pos.z-t.z;const proj=clamp(rx*ux+rz*uz,-t.hl,t.hl);const cx=t.x+ux*proj,cz=t.z+uz*proj;let dx=b.pos.x-cx,dz=b.pos.z-cz;const d=Math.hypot(dx,dz),m=R+0.28;
       if(d<m&&d>1e-6){dx/=d;dz/=d;b.pos.x+=dx*(m-d);b.pos.z+=dz*(m-d);const tvx=-uz*t.speed*proj,tvz=ux*t.speed*proj;const rel=(b.vel.x-tvx)*dx+(b.vel.z-tvz)*dz;if(rel<0){b.vel.x-=(1+REST)*rel*dx;b.vel.z-=(1+REST)*rel*dz;if(ev)ev.push('wall');}}}}
@@ -338,7 +345,6 @@ function physStep(b,H,dt,ev){
   if(b.pos.x>hw){b.pos.x=hw;if(b.vel.x>0){b.vel.x=-b.vel.x;b.vel.x*=WALL_LOSS;b.vel.z*=WALL_LOSS;}}
   if(b.pos.z<-hl){b.pos.z=-hl;if(b.vel.z<0){b.vel.z=-b.vel.z;b.vel.x*=WALL_LOSS;b.vel.z*=WALL_LOSS;}}
   if(b.pos.z>hl){b.pos.z=hl;if(b.vel.z>0){b.vel.z=-b.vel.z;b.vel.x*=WALL_LOSS;b.vel.z*=WALL_LOSS;}}
-  if(b.magnet&&!b.air){const mx=H.hole.x-b.pos.x,mz=H.hole.z-b.pos.z;const md=Math.hypot(mx,mz);if(md<9&&md>0.01){b.vel.x+=mx/md*10*dt;b.vel.z+=mz/md*10*dt;}}
   if(!b.ghost)for(const w of H.walls){
     if(b.pos.y>heightAt(H,w.x,w.z)+w.h-0.05) continue;
     const cx=clamp(b.pos.x,w.x-w.w/2,w.x+w.w/2), cz=clamp(b.pos.z,w.z-w.l/2,w.z+w.l/2);
@@ -616,7 +622,10 @@ function makePlayers(list){
 }
 function startSolo(){S.mode='solo';makePlayers([{name:'أنت',kind:'human'},...BOT_NAMES.slice(0,botCount).map(n=>({name:n,kind:'bot'}))]);beginGame();}
 function startLocal(){S.mode='local';const l=[];for(let i=0;i<humCount;i++)l.push({name:`لاعب ${i+1}`,kind:'human'});BOT_NAMES.slice(0,botCount2).forEach(n=>l.push({name:n,kind:'bot'}));makePlayers(l);beginGame();}
-function beginGame(){$('#start').classList.add('hidden');$('#lobby').classList.add('hidden');S.shots=0;try{if(!history.state||!history.state.g)history.pushState({g:1},'');}catch(e){}loadHole(0);}
+let wakeLock=null;
+async function keepAwake(){try{if(navigator.wakeLock&&!wakeLock){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null;});}}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&S.H)keepAwake();});
+function beginGame(){keepAwake();$('#start').classList.add('hidden');$('#lobby').classList.add('hidden');S.shots=0;try{if(!history.state||!history.state.g)history.pushState({g:1},'');}catch(e){}loadHole(0);}
 
 function cur(){return S.players[S.cur];}
 function addRope(a,b,left){
@@ -877,7 +886,7 @@ function makeP2PRoom(code,host){
       hostConn=peerObj.connect(id,{reliable:true});
       hostConn.on('open',()=>{open=true;settled=true;resolve(room);});
       hostConn.on('data',clientHandle);
-      hostConn.on('close',()=>{open=false;toast('انقطع الاتصال بصاحب الغرفة');});
+      hostConn.on('close',()=>{open=false;toast('انقطع الاتصال بصاحب الغرفة، سيُعاد فتح الشاشة الرئيسية');setTimeout(()=>{if(typeof goHome==='function')goHome();},2500);});
       setTimeout(()=>fail('لم يُعثر على الغرفة، تأكد من الرمز'),12000);
     });
     if(host){peerObj.on('connection',c=>{conns.push(c);c.on('data',d=>hostHandle(c,d));c.on('close',()=>{const i=conns.indexOf(c);if(i>=0)conns.splice(i,1);const j=peersList.findIndex(q=>q.peer===c.peer);if(j>=0){peersList.splice(j,1);hostBroadcast({t:'lobby',players:peersList});emitPeers();}});});}
@@ -1141,6 +1150,11 @@ function update(dt,time){
   S.wells.forEach(o=>{o.disk.rotation.z-=dt*1.2;o.ring.rotation.z+=dt*2;o.ring.position.y=0.35+Math.sin(time*3)*0.08;});
   S.spikes.forEach(o=>{const ph=(((H.t||0)%o.t.period)+o.t.period)%o.t.period/o.t.period;const up=ph<0.5?1:0;const target=up?0:-0.9;o.sp.position.y+=(target-o.sp.position.y)*Math.min(1,dt*14);});
   S.bumpers.forEach(o=>{const sc=1+Math.sin(time*5)*0.04;o.m.scale.set(sc,1,sc);});
+  if(S.state!==S.prevState){S.moveT=0;S.slowT=0;S.aimT=0;S.prevState=S.state;}
+  if(S.state==='moving'){S.moveT=(S.moveT||0)+dt;let maxSp=0,anyAir=false;S.players.forEach(b=>{if(b.spawned&&!b.sunk){maxSp=Math.max(maxSp,Math.hypot(b.vel.x,b.vel.z));if(b.air)anyAir=true;}});
+    S.slowT=(maxSp<0.35&&!anyAir)?(S.slowT||0)+dt:0;
+    if(S.moveT>20||S.slowT>1.5){S.players.forEach(b=>{if(!b.air){b.vel.set(0,0,0);}else if(S.moveT>20){b.vel.set(0,0,0);b.air=false;b.pos.y=heightAt(S.H,b.pos.x,b.pos.z);}});}}
+  if(S.state==='aim'&&S.cur>=0){S.aimT=(S.aimT||0)+dt;const cp=cur();if(cp.kind==='bot'&&!S.botPull&&S.aimT>7){S.aimT=0;botAim(cp);}}
   if(S.state==='moving'||S.state==='aim'||S.state==='wait'){
     const ev=[];S.acc+=dt;let n=0;
     while(S.acc>=STEP&&n<10){S.players.forEach(b=>{if(!b.prev)b.prev=V3();b.prev.copy(b.pos);});stepWorld(STEP,ev);S.acc-=STEP;n++;}
@@ -1206,7 +1220,7 @@ function update(dt,time){
     const left=Math.max(0,Math.ceil(S.turnT));
     if(left!==S.lastShown){S.lastShown=left;const p=cur();$('#strokeInfo').textContent=`ضربات: ${p.strokes} · ⏱ ${left}`;}
     if(S.turnT<=0&&isLocalHuman(cur())){S.turnT=999;S.drag=null;$('#power').classList.remove('on');doAction({t:'skip'});}
-    else if(S.turnT<-12&&cur().kind==='remote'){S.turnT=999;applyAction({t:'skip'});}
+    else if(S.turnT<-6&&cur().kind==='remote'){S.turnT=999;toast(`⏳ ${cur().name} لم يسدد، تم تخطي دوره`);applyAction({t:'skip'});}
   }
   for(let k=S.fx.length-1;k>=0;k--){const f=S.fx[k];f.t+=dt;const s=0.3+f.t/f.life*2.2;f.mesh.scale.setScalar(s);f.mesh.material.opacity=0.8*(1-f.t/f.life);if(f.t>=f.life){scene.remove(f.mesh);S.fx.splice(k,1);}}
   // camera
