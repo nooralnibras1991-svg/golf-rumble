@@ -270,7 +270,7 @@ input.txt{border:2px solid #fff;box-shadow:inset 0 2px 6px rgba(0,0,0,.08);borde
 <div id="start" class="overlay">
   <div class="card">
     <div class="logoRow"><span class="logoBall" aria-hidden="true"></span><h1>غولف الاندفاع</h1></div>
-    <p class="tagline">فوضى ملوّنة · غولف أركيد تنافسي <small style="color:var(--muted);font-weight:500">· الإصدار 41</small></p>
+    <p class="tagline">فوضى ملوّنة · غولف أركيد تنافسي <small style="color:var(--muted);font-weight:500">· الإصدار 43</small></p>
     <p>اسحب كرتك للخلف كالمقلاع واتركها. أول من يُدخل الكرة يأخذ أكبر النقاط. اجمع المهارات من الصناديق ❓ وخرّب على أصدقائك.</p>
     <details class="how"><summary>كيف تلعب؟ القوانين كاملة</summary><p>اسحب كرتك للخلف كالمقلاع واتركها لتنطلق نحو الحفرة. أول من يُدخلها يأخذ أكبر النقاط ويفتح «الجولة الأخيرة»: ضربة واحدة للبقية. المهارات لا تبدأ معك: اصطدم بالصناديق المجهولة ❓ لتحصل على واحدة من 12 مهارة عشوائية، منها الحبل الذي يربط خصمين معاً واللعنة التي تحرف ضربة خصمك. احذر الفخاخ: رمل، قافز، عارضة دوّارة، مروحة، ثقب جاذب، وأشواك. اصدم الخصوم وازرع الألغام لتكسب نقاطاً. لكل مرحلة حدث عشوائي وكنز مخفي وعوائق تُكسر بأول لمسة لتفتح الطريق، ومستوى «جحيم» يخفي الفخاخ والجدران والحفرة. الفيزياء رياضية: القوة تساوي مسافة التوقف بالضبط، والكرة ترتد عن الجدران بزاوية انعكاس مساوية لزاوية السقوط وبلا فقدان للسرعة.</p>
 </details>
@@ -376,6 +376,7 @@ input.txt{border:2px solid #fff;box-shadow:inset 0 2px 6px rgba(0,0,0,.08);borde
     <h2>☰ القائمة</h2>
     <div class="mrow"><div>الصوت والموسيقى</div><button id="sndBtn" class="mini" type="button" title="الصوت">🔊</button></div>
     <div class="mrow"><div>الموسيقى الخلفية<small>ألحان أصلية تتغير مع كل عالم</small></div><button id="musBtn" class="mini" type="button" title="الموسيقى">🎵</button></div>
+    <div class="mrow" style="flex-direction:column;align-items:stretch;gap:6px"><div>مستوى المؤثرات <small id="sfxVolLbl"></small></div><input type="range" id="sfxVol" min="0" max="100" step="5" style="width:100%"><div>مستوى الموسيقى <small id="musVolLbl"></small></div><input type="range" id="musVol" min="0" max="100" step="5" style="width:100%"></div>
     <div class="mrow"><div>جودة الرسوم<small>🅷 عالية · 🅼 متوسطة · 🅻 منخفضة وأسرع</small></div><button id="qBtn" class="mini" type="button" title="جودة الرسوم">🅼</button></div>
     <div class="mrow"><div>حركة الكاميرا<small>اهتزاز وتقريب عند التسديد</small></div><button id="camBtn" class="mini" type="button" title="حركة الكاميرا">🎥</button></div>
     <div class="mrow"><div>رسالة سرية<small id="menuMsgHint">متاحة في وضع الأونلاين</small></div><button id="menuMsg" class="mini" type="button">💬</button></div>
@@ -814,13 +815,13 @@ function updateParticles(dt){let k=0;for(let i=parts.length-1;i>=0;i--){const q=
 // ---------- synth sounds ----------
 const SFX=(()=>{
   // ---------- sample-based audio engine (Kenney CC0 samples) with synth fallback + original synth music ----------
-  let ctx=null,muted=false,musicOff=false;try{muted=localStorage.getItem('golf-muted')==='1';musicOff=localStorage.getItem('golf-music')==='0';}catch(e){}
+  let ctx=null,muted=false,musicOff=false,sfxVol=0.6,musVol=0.4;try{muted=localStorage.getItem('golf-muted')==='1';musicOff=localStorage.getItem('golf-music')==='0';const a=+localStorage.getItem('golf-sfxvol');if(a>=0&&a<=1&&!isNaN(a))sfxVol=a;const b=+localStorage.getItem('golf-musvol');if(b>=0&&b<=1&&!isNaN(b))musVol=b;}catch(e){}
   const BASE=(typeof window!=='undefined'&&window.SFX_BASE)||'sfx/';
   const NAMES='shot1 shot2 shot3 wall1 wall2 wall3 post tree rock crate bump1 bump2 ballhit splash well hole holejingle ace win win2 pickup energy skill react shield explode bomb quake freeze spike curse blind steal swap rope mine magnet oil gateopen gateclose zone treasure predok predno ui select back tick emote showdown turn draft miss portal wind trap sand block msg join'.split(' ');
   const bufs={};let master=null,sfxG=null,musG=null,musF=null,comp=null,rollSrc=null,rollG=null,rollF=null,loaded=false;
   const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
   function ensure(){
-    if(!ctx){try{ctx=new (window.AudioContext||window.webkitAudioContext)();comp=ctx.createDynamicsCompressor();comp.threshold.value=-16;comp.ratio.value=4;master=ctx.createGain();master.gain.value=muted?0:1;sfxG=ctx.createGain();sfxG.gain.value=0.95;musF=ctx.createBiquadFilter();musF.type='lowpass';musF.frequency.value=2600;musG=ctx.createGain();musG.gain.value=musicOff?0:0.5;sfxG.connect(comp);musG.connect(musF);musF.connect(comp);comp.connect(master);master.connect(ctx.destination);}catch(e){}}
+    if(!ctx){try{ctx=new (window.AudioContext||window.webkitAudioContext)();comp=ctx.createDynamicsCompressor();comp.threshold.value=-16;comp.ratio.value=4;master=ctx.createGain();master.gain.value=muted?0:1;sfxG=ctx.createGain();sfxG.gain.value=0.55*sfxVol;musF=ctx.createBiquadFilter();musF.type='lowpass';musF.frequency.value=1700;musG=ctx.createGain();musG.gain.value=musicOff?0:0.3*musVol;sfxG.connect(comp);musG.connect(musF);musF.connect(comp);comp.connect(master);master.connect(ctx.destination);}catch(e){}}
     if(ctx&&ctx.state==='suspended'){try{ctx.resume();}catch(e){}}return ctx;}
   function preload(){if(loaded||!ensure())return;loaded=true;NAMES.forEach(n=>{fetch(BASE+n+'.mp3').then(r=>r.ok?r.arrayBuffer():Promise.reject(0)).then(ab=>ctx.decodeAudioData(ab)).then(b=>{bufs[n]=b;}).catch(()=>{bufs[n]=null;});});}
   // --- synth helpers (fallback + music) ---
@@ -829,43 +830,44 @@ const SFX=(()=>{
   const FB={shot:()=>{tone(180,0.18,'triangle',0.18,90);noise(0.08,0.12,1500);},wall:()=>tone(140,0.08,'square',0.06,80),post:()=>tone(420,0.1,'square',0.06,200),bump:()=>tone(90,0.25,'sawtooth',0.12,300),ballhit:()=>tone(260,0.07,'square',0.07,120),splash:()=>{noise(0.35,0.25,600);tone(200,0.3,'sine',0.1,60);},well:()=>tone(300,0.6,'sine',0.12,40),hole:()=>tone(220,0.12,'sine',0.14,110),holejingle:()=>[523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,0.22,'triangle',0.16),i*90)),ace:()=>[659,784,1046,1318].forEach((f,i)=>setTimeout(()=>tone(f,0.25,'square',0.08),i*80)),win:()=>[523,659,784,1046,1318,1568].forEach((f,i)=>setTimeout(()=>tone(f,0.3,'triangle',0.14),i*110)),pickup:()=>{tone(660,0.12,'sine',0.14);setTimeout(()=>tone(990,0.16,'sine',0.14),90);},energy:()=>{tone(880,0.1,'sine',0.1);setTimeout(()=>tone(1320,0.14,'sine',0.1),70);},skill:()=>{tone(520,0.1,'triangle',0.1);setTimeout(()=>tone(780,0.12,'triangle',0.1),70);},react:()=>tone(400,0.25,'sine',0.1,900),explode:()=>{noise(0.4,0.3,400);tone(60,0.4,'sine',0.2,30);},quake:()=>noise(0.6,0.3,250),freeze:()=>tone(1200,0.3,'sine',0.1,2400),spike:()=>tone(400,0.15,'square',0.1,120),ui:()=>tone(720,0.05,'sine',0.045,900),tick:()=>tone(1500,0.03,'square',0.04),predok:()=>{tone(880,0.1,'sine',0.1);setTimeout(()=>tone(1175,0.18,'sine',0.1),100);},predno:()=>tone(220,0.2,'square',0.06,160),gate:()=>noise(0.5,0.2,300),zone:()=>{tone(700,0.1,'triangle',0.1);setTimeout(()=>tone(1050,0.2,'triangle',0.1),90);},treasure:()=>[784,988,1175,1568].forEach((f,i)=>setTimeout(()=>tone(f,0.18,'triangle',0.12),i*70)),emote:()=>tone(900,0.08,'sine',0.06,600),showdown:()=>tone(110,0.8,'sawtooth',0.12,55),miss:()=>tone(300,0.25,'square',0.06,120),portal:()=>tone(300,0.3,'sine',0.1,1800),select:()=>tone(600,0.05,'sine',0.05),wind:()=>noise(0.5,0.18,1800,null,'bandpass'),sand:()=>noise(0.15,0.12,1200)};
   function play(n,o){o=o||{};const c=ensure();if(!c||muted)return null;const b=bufs[n];if(!b){const fb=FB[o.fb||n.replace(/\d+$/,'')];if(fb)fb();return null;}const s=c.createBufferSource();s.buffer=b;s.playbackRate.value=(o.rate||1)*(o.vary?1+(Math.random()*2-1)*o.vary:1);const g=c.createGain();g.gain.value=o.vol!=null?o.vol:1;s.connect(g);let node=g;if(o.pan!=null&&c.createStereoPanner){const p=c.createStereoPanner();p.pan.value=cl(o.pan,-1,1);g.connect(p);node=p;}node.connect(sfxG);s.start(c.currentTime+(o.delay||0));return s;}
   const pick=(...a)=>a[Math.floor(Math.random()*a.length)];
+  const tock=(f,dur,vol,f2)=>{const c=ensure();if(!c||muted)return;const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(f,c.currentTime);if(f2)o.frequency.exponentialRampToValueAtTime(f2,c.currentTime+dur);g.gain.setValueAtTime(vol,c.currentTime);g.gain.exponentialRampToValueAtTime(0.0005,c.currentTime+dur);o.connect(g);g.connect(sfxG);o.start();o.stop(c.currentTime+dur+0.02);};
   // --- rolling ball loop ---
-  function roll(speed){const c=ensure();if(!c)return;if(!rollSrc){const n=c.sampleRate,buf=c.createBuffer(1,n,c.sampleRate),d=buf.getChannelData(0);let last=0;for(let i=0;i<n;i++){const w=Math.random()*2-1;last=(last+0.04*w)/1.04;d[i]=last*6;}rollSrc=c.createBufferSource();rollSrc.buffer=buf;rollSrc.loop=true;rollF=c.createBiquadFilter();rollF.type='lowpass';rollF.frequency.value=500;rollG=c.createGain();rollG.gain.value=0;rollSrc.connect(rollF);rollF.connect(rollG);rollG.connect(sfxG);try{rollSrc.start();}catch(e){}}const k=muted?0:cl((speed-0.6)/14,0,1);rollG.gain.setTargetAtTime(k*0.28,c.currentTime,0.09);rollF.frequency.setTargetAtTime(260+k*1500,c.currentTime,0.09);}
+  function roll(speed){return;if(!rollSrc){const n=c.sampleRate,buf=c.createBuffer(1,n,c.sampleRate),d=buf.getChannelData(0);let last=0;for(let i=0;i<n;i++){const w=Math.random()*2-1;last=(last+0.04*w)/1.04;d[i]=last*6;}rollSrc=c.createBufferSource();rollSrc.buffer=buf;rollSrc.loop=true;rollF=c.createBiquadFilter();rollF.type='lowpass';rollF.frequency.value=500;rollG=c.createGain();rollG.gain.value=0;rollSrc.connect(rollF);rollF.connect(rollG);rollG.connect(sfxG);try{rollSrc.start();}catch(e){}}const k=muted?0:cl((speed-0.6)/14,0,1);rollG.gain.setTargetAtTime(k*0.28,c.currentTime,0.09);rollF.frequency.setTargetAtTime(260+k*1500,c.currentTime,0.09);}
   // --- original synth music: one sequencer, four moods ---
-  const MOODS={classic:{bpm:114,root:261.63,scale:[0,2,4,7,9],bass:'triangle',lead:'square',prog:[0,-5,-3,-7],hat:1,leadV:0.035},fantasy:{bpm:96,root:349.23,scale:[0,2,4,6,7,9,11],bass:'sine',lead:'triangle',prog:[0,-3,-5,-7],hat:0.5,leadV:0.05},ring:{bpm:126,root:220,scale:[0,3,5,7,10],bass:'sawtooth',lead:'square',prog:[0,-2,-4,-5],hat:1,leadV:0.03},hell:{bpm:102,root:146.83,scale:[0,1,3,5,7,8,10],bass:'sawtooth',lead:'sawtooth',prog:[0,1,-2,0],hat:0.7,leadV:0.028},menu:{bpm:104,root:293.66,scale:[0,2,4,7,9],bass:'sine',lead:'triangle',prog:[0,-5,-3,-7],hat:0.4,leadV:0.04}};
+  const MOODS={classic:{bpm:112,root:261.63,scale:[0,2,4,7,9],bass:'triangle',lead:'triangle',prog:[0,-5,-3,-7],hat:0.6,leadV:0.03},fantasy:{bpm:96,root:349.23,scale:[0,2,4,6,7,9,11],bass:'sine',lead:'triangle',prog:[0,-3,-5,-7],hat:0.5,leadV:0.05},ring:{bpm:124,root:220,scale:[0,3,5,7,10],bass:'triangle',lead:'square',prog:[0,-2,-4,-5],hat:0.6,leadV:0.018},hell:{bpm:100,root:146.83,scale:[0,1,3,5,7,8,10],bass:'triangle',lead:'triangle',prog:[0,1,-2,0],hat:0.5,leadV:0.03},menu:{bpm:104,root:293.66,scale:[0,2,4,7,9],bass:'sine',lead:'triangle',prog:[0,-5,-3,-7],hat:0.4,leadV:0.04}};
   let mood=MOODS.menu,step=0,nextT=0,mTimer=null,leadIdx=4,lcg=12345;const rnd=()=>{lcg=(lcg*1103515245+12345)%2147483648;return lcg/2147483648;};
   const osc=(t,f,dur,type,vol)=>{const c=ctx;const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.015);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(musG);o.start(t);o.stop(t+dur+0.05);};
-  const kick=t=>{const c=ctx;const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(42,t+0.12);g.gain.setValueAtTime(0.5,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.2);o.connect(g);g.connect(musG);o.start(t);o.stop(t+0.25);};
+  const kick=t=>{const c=ctx;const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(42,t+0.12);g.gain.setValueAtTime(0.3,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.2);o.connect(g);g.connect(musG);o.start(t);o.stop(t+0.25);};
   const drum=(t,dur,vol,fc,type)=>{const c=ctx;const n=Math.floor(c.sampleRate*dur),buf=c.createBuffer(1,n,c.sampleRate),d=buf.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);const s=c.createBufferSource();s.buffer=buf;const f=c.createBiquadFilter();f.type=type;f.frequency.value=fc;const g=c.createGain();g.gain.value=vol;s.connect(f);f.connect(g);g.connect(musG);s.start(t);};
   function schedule(){const c=ensure();if(!c||muted||musicOff)return;const spb=60/mood.bpm/4;if(nextT<c.currentTime)nextT=c.currentTime+0.05;
     while(nextT<c.currentTime+0.5){const t=nextT,s=step%16,bar=Math.floor(step/16)%4,off=mood.prog[bar];
-      if(s%8===0)kick(t);if(s%8===4)drum(t,0.14,0.22,1800,'bandpass');if(mood.hat&&(s%2===0||rnd()<0.25*mood.hat))drum(t,0.03,(s%4===2?0.07:0.045)*mood.hat,7000,'highpass');
-      if(s%4===0||s%4===3)osc(t,mood.root/2*Math.pow(2,off/12),spb*1.8,mood.bass,0.11);
+      if(s%8===0)kick(t);if(s%8===4)drum(t,0.12,0.1,1800,'bandpass');if(mood.hat&&(s%2===0||rnd()<0.25*mood.hat))drum(t,0.025,(s%4===2?0.035:0.02)*mood.hat,7000,'highpass');
+      if(s%4===0||s%4===3)osc(t,mood.root/2*Math.pow(2,off/12),spb*1.8,mood.bass,0.07);
       if(s%2===0){leadIdx=cl(leadIdx+Math.round(rnd()*4-2),0,mood.scale.length*2-1);const L=mood.scale.length;const f=mood.root*Math.pow(2,(mood.scale[leadIdx%L]+12*Math.floor(leadIdx/L)+off)/12);if(rnd()<0.72)osc(t,f,spb*(rnd()<0.3?3.2:1.6),mood.lead,mood.leadV);}
-      if(s===0){[0,4,7].forEach(iv=>osc(t,mood.root*Math.pow(2,(iv+off)/12),spb*15,'triangle',0.028));}
+      if(s===0){[0,4,7].forEach(iv=>osc(t,mood.root*Math.pow(2,(iv+off)/12),spb*15,'sine',0.02));}
       step++;nextT+=spb;}}
   const startMusic=()=>{if(mTimer)return;mTimer=setInterval(schedule,150);};
   function setMood(k){const m=MOODS[k]||MOODS.classic;if(m!==mood){mood=m;}}
   return {
     unlock:()=>{ensure();preload();startMusic();},isMuted:()=>muted,musicMuted:()=>musicOff,
     toggle:()=>{muted=!muted;try{localStorage.setItem('golf-muted',muted?'1':'0');}catch(e){}if(master)master.gain.value=muted?0:1;return muted;},
-    toggleMusic:()=>{musicOff=!musicOff;try{localStorage.setItem('golf-music',musicOff?'0':'1');}catch(e){}if(musG)musG.gain.setTargetAtTime(musicOff?0:0.5,ctx.currentTime,0.2);return musicOff;},
-    mood:setMood,roll,
-    shot:pw=>{play(pick('shot1','shot2','shot3'),{vol:0.5+pw*0.6,rate:0.9+pw*0.3,vary:0.05,fb:'shot'});if(pw>0.6&&bufs.wind)play('wind',{vol:0.25*pw,rate:1.6,delay:0.02});},
-    wall:()=>play(pick('wall1','wall2','wall3'),{vol:0.7,vary:0.08,fb:'wall'}),post:()=>play('post',{vol:0.6,vary:0.1}),
-    block:k=>play(k==='tree'?'tree':k==='rock'?'rock':'crate',{vol:0.9,vary:0.06,fb:'explode'}),
-    ballhit:()=>play('ballhit',{vol:0.8,vary:0.1}),bump:()=>play(pick('bump1','bump2'),{vol:0.7,vary:0.06,fb:'bump'}),
-    water:()=>{play('splash',{vol:0.9,rate:0.8});noise(0.35,0.18,700);},well:()=>play('well',{vol:0.9,rate:0.8}),
-    holed:()=>{play('hole',{vol:0.9});play('holejingle',{vol:0.8,delay:0.18});},ace:()=>play('ace',{vol:0.8,delay:0.2}),
-    pickup:()=>play('pickup',{vol:0.6}),energy:()=>play('energy',{vol:0.55,vary:0.04}),
+    toggleMusic:()=>{musicOff=!musicOff;try{localStorage.setItem('golf-music',musicOff?'0':'1');}catch(e){}if(musG)musG.gain.setTargetAtTime(musicOff?0:0.3*musVol,ctx.currentTime,0.2);return musicOff;},
+    mood:setMood,roll,setVol:(a,b)=>{if(a!=null){sfxVol=cl(a,0,1);try{localStorage.setItem('golf-sfxvol',String(sfxVol));}catch(e){}if(sfxG)sfxG.gain.setTargetAtTime(0.55*sfxVol,ctx.currentTime,0.05);}if(b!=null){musVol=cl(b,0,1);try{localStorage.setItem('golf-musvol',String(musVol));}catch(e){}if(musG&&!musicOff)musG.gain.setTargetAtTime(0.3*musVol,ctx.currentTime,0.05);}},vols:()=>({sfx:sfxVol,mus:musVol}),
+    shot:pw=>{tock(900+pw*300,0.05,0.12+pw*0.14,420);tock(240,0.09,0.08+pw*0.08,120);},
+    wall:()=>{tock(720,0.045,0.11,360);},post:()=>{tock(1300,0.06,0.09,700);},
+    block:k=>play(k==='tree'?'tree':k==='rock'?'rock':'crate',{vol:0.6,vary:0.06,fb:'explode'}),
+    ballhit:()=>{tock(1500,0.035,0.1,900);tock(600,0.05,0.06,300);},bump:()=>{tock(520,0.16,0.14,260);},
+    water:()=>{play('splash',{vol:0.7,rate:0.75});},well:()=>play('blind',{vol:0.6,rate:0.7}),
+    holed:()=>{tock(300,0.12,0.14,150);[659,784,1046].forEach((f,i)=>setTimeout(()=>tock(f,0.22,0.09),180+i*110));},ace:()=>play('ace',{vol:0.55,delay:0.2}),
+    pickup:()=>{tock(880,0.12,0.09);setTimeout(()=>tock(1320,0.18,0.09),90);},energy:()=>{tock(1046,0.1,0.08);setTimeout(()=>tock(1568,0.16,0.08),80);},
     skill:k=>{const m={freeze:'freeze',curse:'curse',blind:'blind',steal:'steal',swap:'swap',rope:'rope',mine:'mine',magnet:'magnet',oil:'oil',bomb:'bomb',quake:'quake',shield:'shield',shove:'ballhit'};play(m[k]||'skill',{vol:0.75,fb:'skill'});},
     react:k=>play(k==='shield'?'shield':k==='trap'?'trap':k==='wind'?'wind':'react',{vol:0.7,fb:'react'}),
-    explode:()=>play('explode',{vol:0.9,vary:0.05}),quake:()=>play('quake',{vol:0.9}),freeze:()=>play('freeze',{vol:0.7}),spike:()=>play('spike',{vol:0.7,vary:0.1}),
+    explode:()=>play('explode',{vol:0.6,vary:0.05}),quake:()=>play('quake',{vol:0.55}),freeze:()=>play('freeze',{vol:0.5}),spike:()=>tock(1400,0.08,0.09,500),
     gate:open=>play(open?'gateopen':'gateclose',{vol:0.8,fb:'gate'}),zone:()=>play('zone',{vol:0.6}),treasure:()=>play('treasure',{vol:0.8}),
-    predict:ok=>play(ok?'predok':'predno',{vol:0.6}),ui:()=>play('ui',{vol:0.5,vary:0.06}),select:()=>play('select',{vol:0.5}),back:()=>play('back',{vol:0.5,fb:'ui'}),
-    tick:()=>play('tick',{vol:0.45}),emote:()=>play('emote',{vol:0.5,vary:0.15}),showdown:()=>play('showdown',{vol:0.9}),turn:()=>play('turn',{vol:0.45,fb:'select'}),draft:()=>play('draft',{vol:0.6,fb:'select'}),
-    miss:()=>play('miss',{vol:0.5}),portal:()=>play('portal',{vol:0.7}),sand:()=>play('sand',{vol:0.5,vary:0.1}),msg:()=>play('msg',{vol:0.6,fb:'ui'}),join:()=>play('join',{vol:0.6,fb:'pickup'}),
-    win:()=>{play('win',{vol:0.9});play('win2',{vol:0.7,delay:0.9});},
+    predict:ok=>play(ok?'predok':'predno',{vol:0.6}),ui:()=>tock(1000,0.04,0.05,700),select:()=>tock(1200,0.05,0.05),back:()=>tock(600,0.05,0.05,400),
+    tick:()=>tock(1800,0.03,0.05),emote:()=>play('emote',{vol:0.5,vary:0.15}),showdown:()=>play('showdown',{vol:0.6}),turn:()=>play('turn',{vol:0.45,fb:'select'}),draft:()=>play('draft',{vol:0.6,fb:'select'}),
+    miss:()=>play('miss',{vol:0.5}),portal:()=>play('portal',{vol:0.7}),sand:()=>noise(0.12,0.05,900),msg:()=>play('msg',{vol:0.6,fb:'ui'}),join:()=>play('join',{vol:0.6,fb:'pickup'}),
+    win:()=>{play('win',{vol:0.7});play('win2',{vol:0.5,delay:0.9});},
     charge:pw=>{tone(160+pw*520,0.06,'triangle',0.028+pw*0.03);}
   };
 })();
@@ -1538,6 +1540,7 @@ $('#showBtn').addEventListener('click',()=>{const p=cur();if(!p||!isLocalHuman(p
 try{S.camReduce=localStorage.getItem('golf-cam')==='1'||(localStorage.getItem('golf-cam')==null&&window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){S.camReduce=false;}
 $('#camBtn').textContent=S.camReduce?'🎥 هادئة':'🎥';$('#camBtn').addEventListener('click',()=>{S.camReduce=!S.camReduce;try{localStorage.setItem('golf-cam',S.camReduce?'1':'0');}catch(e){}$('#camBtn').textContent=S.camReduce?'🎥 هادئة':'🎥';toast(S.camReduce?'حركة الكاميرا مخففة':'حركة الكاميرا كاملة');});
 $('#qBtn').addEventListener('click',()=>{applyQuality(Q.level==='high'?'medium':Q.level==='medium'?'low':'high');Q.cool=5;});
+{const v=SFX.vols();const a=$('#sfxVol'),b=$('#musVol');a.value=Math.round(v.sfx*100);b.value=Math.round(v.mus*100);const lab=()=>{$('#sfxVolLbl').textContent=a.value+'%';$('#musVolLbl').textContent=b.value+'%';};lab();a.addEventListener('input',()=>{SFX.setVol(a.value/100,null);lab();});a.addEventListener('change',()=>SFX.wall());b.addEventListener('input',()=>{SFX.setVol(null,b.value/100);lab();});}
 $('#musBtn').textContent=SFX.musicMuted()?'🚫':'🎵';$('#musBtn').addEventListener('click',()=>{$('#musBtn').textContent=SFX.toggleMusic()?'🚫':'🎵';});
 $('#sndBtn').textContent=SFX.isMuted()?'🔇':'🔊';$('#sndBtn').addEventListener('click',()=>{$('#sndBtn').textContent=SFX.toggle()?'🔇':'🔊';});
 $('#ovBtn').addEventListener('click',()=>{S.overview=!S.overview;$('#ovBtn').textContent=S.overview?'🎯':'🗺️';updateHUD();});
