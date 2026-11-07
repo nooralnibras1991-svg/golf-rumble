@@ -217,6 +217,20 @@ input.txt{border:2px solid #fff;box-shadow:inset 0 2px 6px rgba(0,0,0,.08);borde
 #turnInfo.me small{color:#fff6d6}
 .sk{border-radius:18px;border:2px solid #fff}
 .sk.armed{background:linear-gradient(180deg,#ffe27a,#f2a41c)}
+/* ===== duel systems UI ===== */
+.en{background:#fff6d8;color:#8a5a00;border-radius:999px;padding:0 6px;font-weight:800;margin-right:2px}
+#sideBar{display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:auto;background:var(--panel-strong);border-radius:16px;padding:8px 10px;margin:0 auto;max-width:96vw;box-shadow:var(--shadow);border:2px solid #fff;animation:toastIn .25s ease-out}
+.sbl{font-size:13px;font-weight:800;color:var(--fg);display:flex;gap:8px;align-items:center}
+.sbrow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.sbb{border:2px solid #fff;background:linear-gradient(180deg,#fff,#eef3f7);color:var(--fg);border-radius:999px;padding:7px 10px;font-family:var(--font);font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.08)}
+.sbb small{color:var(--muted);font-weight:700}
+.sbb.on{background:linear-gradient(180deg,#ffe27a,#f2a41c)}
+.sbb:disabled{opacity:.45;cursor:default}
+#reactPill{background:#ffe3d6;color:#9a3a1a;border-radius:999px;padding:1px 8px;font-variant-numeric:tabular-nums}
+#chalList .btn{margin-top:8px;background:#fff;color:var(--fg);border:2px solid var(--line);box-shadow:none;text-shadow:none;font-size:16px;text-align:right}
+#chalList .btn small{display:block;color:var(--muted);font-size:12px;font-weight:600}
+#draftGrid .mchip{text-align:center;padding:8px 4px}
+#showBtn{background:linear-gradient(180deg,#ff9a5b,#e8323f);animation:turnPulse 1.2s ease-in-out infinite}
 </style>
 
 <canvas id="c"></canvas>
@@ -237,6 +251,8 @@ input.txt{border:2px solid #fff;box-shadow:inset 0 2px 6px rgba(0,0,0,.08);borde
     <div id="emoteRow" class="hidden"></div>
     <div id="hint"></div>
     <button id="skipBtn" class="btn hidden" type="button" style="pointer-events:auto;margin:0 auto;width:auto;padding:10px 18px;font-size:15px">⏭️ جهاز اللاعب لا يستجيب: تخطي دوره</button>
+    <div id="sideBar" class="hidden"></div>
+    <div id="actRow" style="display:flex;gap:8px;justify-content:center"><button id="chalBtn" class="btn ghost hidden" type="button" style="width:auto;padding:8px 14px;margin:0;pointer-events:auto">🎯 تحدٍّ</button><button id="showBtn" class="btn hidden" type="button" style="width:auto;padding:8px 14px;margin:0;pointer-events:auto;font-size:15px">🔥 إعلان العودة</button></div>
     <div id="gpBar" class="hidden"><span id="gpTxt"></span><button id="gpCancel" class="btn ghost" type="button">إلغاء</button></div>
     <div id="skills"></div>
   </div>
@@ -250,7 +266,7 @@ input.txt{border:2px solid #fff;box-shadow:inset 0 2px 6px rgba(0,0,0,.08);borde
 <div id="start" class="overlay">
   <div class="card">
     <div class="logoRow"><span class="logoBall" aria-hidden="true"></span><h1>غولف الاندفاع</h1></div>
-    <p class="tagline">فوضى ملوّنة · غولف أركيد تنافسي <small style="color:var(--muted);font-weight:500">· الإصدار 39</small></p>
+    <p class="tagline">فوضى ملوّنة · غولف أركيد تنافسي <small style="color:var(--muted);font-weight:500">· الإصدار 40</small></p>
     <p>اسحب كرتك للخلف كالمقلاع واتركها. أول من يُدخل الكرة يأخذ أكبر النقاط. اجمع المهارات من الصناديق ❓ وخرّب على أصدقائك.</p>
     <details class="how"><summary>كيف تلعب؟ القوانين كاملة</summary><p>اسحب كرتك للخلف كالمقلاع واتركها لتنطلق نحو الحفرة. أول من يُدخلها يأخذ أكبر النقاط ويفتح «الجولة الأخيرة»: ضربة واحدة للبقية. المهارات لا تبدأ معك: اصطدم بالصناديق المجهولة ❓ لتحصل على واحدة من 12 مهارة عشوائية، منها الحبل الذي يربط خصمين معاً واللعنة التي تحرف ضربة خصمك. احذر الفخاخ: رمل، قافز، عارضة دوّارة، مروحة، ثقب جاذب، وأشواك. اصدم الخصوم وازرع الألغام لتكسب نقاطاً. لكل مرحلة حدث عشوائي وكنز مخفي وعوائق تُكسر بأول لمسة لتفتح الطريق، ومستوى «جحيم» يخفي الفخاخ والجدران والحفرة. الفيزياء رياضية: القوة تساوي مسافة التوقف بالضبط، والكرة ترتد عن الجدران بزاوية انعكاس مساوية لزاوية السقوط وبلا فقدان للسرعة.</p>
 </details>
@@ -299,6 +315,9 @@ input.txt{border:2px solid #fff;box-shadow:inset 0 2px 6px rgba(0,0,0,.08);borde
  <details class="rules" open><summary>⚙️ شكل الكرة والقوانين والمراحل</summary>
   <div class="lbl">شكل كرتك</div>
   <div id="skinRow" class="skinrow"></div>
+  <div class="lbl">نمط اللعب</div>
+  <div class="seg" id="modeSeg"><button type="button" data-v="classic" class="on">🏌️ كلاسيكي</button><button type="button" data-v="tactical">🧠 تكتيكي</button><button type="button" data-v="chaos">🌀 فوضوي</button></div>
+  <p id="modeHint" style="margin:-8px 0 10px"></p>
   <div class="lbl">الصعوبة</div>
   <div class="seg" id="diffSeg"><button type="button" data-v="normal" class="on">عادي</button><button type="button" data-v="hard">صعب 🫣</button><button type="button" data-v="insane">جحيم 😈</button></div>
   <div class="lbl">وقت الدور</div>
@@ -331,6 +350,7 @@ input.txt{border:2px solid #fff;box-shadow:inset 0 2px 6px rgba(0,0,0,.08);borde
     <button class="btn ghost" id="inviteBtn" type="button" style="margin:0 0 10px">📋 نسخ رابط الدعوة والرمز</button>
     <div class="lobby" id="lobbyList"></div>
     <div id="rulesSlotLobby"></div>
+    <div id="netBots" class="hidden"><div class="lbl">🤖 بوتات تلعب معكم</div><div class="seg" id="botSegNet"><button type="button" class="on" data-n="0">0</button><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button></div></div>
     <p id="lobbyMsg">بانتظار اللاعبين…</p>
     <button class="btn" id="lobbyStart" type="button" disabled>ابدأ اللعبة</button>
     <button class="btn ghost" id="lobbyLeave" type="button">مغادرة</button>
@@ -374,6 +394,22 @@ input.txt{border:2px solid #fff;box-shadow:inset 0 2px 6px rgba(0,0,0,.08);borde
 <div id="inbox" class="hidden"></div>
 <div id="confetti" class="hidden"></div>
 
+<div id="chalBox" class="overlay hidden">
+  <div class="card">
+    <h2>🎯 تحدٍّ اختياري لهذه الضربة</h2>
+    <div id="chalList"></div>
+    <button class="btn ghost" id="chalCancel" type="button">بلا تحدٍّ</button>
+  </div>
+</div>
+<div id="draft" class="overlay hidden">
+  <div class="card">
+    <h2>🧠 اختر 3 مهارات <small id="draftWho" style="font-size:13px;color:var(--muted)"></small></h2>
+    <p>كل مهارة تكلّف طاقة ⚡ عند استخدامها ولا تُستخدم في دورين متتاليين. ابدأ بـ3 طاقة، واكسب المزيد من الصناديق والمناطق والتوقعات.</p>
+    <div id="draftGrid" class="mapgrid" style="grid-template-columns:repeat(3,1fr)"></div>
+    <p id="draftInfo" style="min-height:18px"></p>
+    <button class="btn" id="draftOk" type="button" disabled>جاهز</button>
+  </div>
+</div>
 <div id="picker" class="overlay hidden">
   <div class="card">
     <h2 id="pickerTitle">اختر الهدف</h2>
@@ -397,15 +433,15 @@ if(IS_MOBILE){const dr=document.querySelector('#rulesBox details.rules');if(dr)d
 const MAP_SCALE=2.5;
 const MAXV=23, G=9.8, R=0.45, HOLE_R=0.62, FRIC=2.9, REST=1.0, WALL_LOSS=0.9, MAX_DIST=80, MAX_STROKES=8, STEP=1/120, TURN_TIME=20;
 const ORDER_PTS=[5,3,2,1,1,1];
-const SKILL_MAX={power:2,jump:2,shield:1,freeze:1,shove:2,mine:1,magnet:1,ghost:1,swap:1,quake:1,rope:1,curse:1,warp:1,giant:1,steal:1,hole:1,bomb:1,oil:1,blind:1};
-const SKILL_ZERO=()=>({power:0,jump:0,shield:0,freeze:0,shove:0,mine:0,magnet:0,ghost:0,swap:0,quake:0,rope:0,curse:0,warp:0,giant:0,steal:0,hole:0,bomb:0,oil:0,blind:0});
+const SKILL_MAX={power:2,jump:2,shield:1,freeze:1,shove:2,mine:1,magnet:1,ghost:1,swap:1,quake:1,rope:1,curse:1,warp:1,giant:1,steal:1,bomb:1,oil:1,blind:1};
+const SKILL_ZERO=()=>({power:0,jump:0,shield:0,freeze:0,shove:0,mine:0,magnet:0,ghost:0,swap:0,quake:0,rope:0,curse:0,warp:0,giant:0,steal:0,bomb:0,oil:0,blind:0});
 const SKILL_COLORS={power:0xffc300,jump:0x3ddc84,shield:0x4ea8ff,freeze:0x9be7ff,shove:0xff8c42,mine:0xd7263d,magnet:0xff4fa3,ghost:0xd8d8ff,swap:0x7cd8ff,quake:0xff6a3d,rope:0xc49a6c,curse:0x8e44ad,warp:0x4ea8ff,giant:0x9aa7b2,steal:0x333a44,hole:0x5b2c8f,bomb:0xe74c3c,oil:0x2c3e50,blind:0x6c5ce7};
 const SKILLS={
   power:{icon:'⚡',name:'اندفاع'}, jump:{icon:'🐏',name:'صدمة'}, shield:{icon:'🛡️',name:'درع'},
   freeze:{icon:'❄️',name:'تجميد'}, shove:{icon:'👊',name:'دفعة'}, mine:{icon:'💣',name:'لغم'},
   magnet:{icon:'🧲',name:'مغناطيس'}, ghost:{icon:'👻',name:'شبح'}, swap:{icon:'🔁',name:'تبديل'}, quake:{icon:'🌋',name:'زلزال'},
   rope:{icon:'🪢',name:'حبل'}, curse:{icon:'🔮',name:'لعنة'},
-  warp:{icon:'🌀',name:'عبور'}, giant:{icon:'🐘',name:'تضخم'}, steal:{icon:'🕵️',name:'سرقة'}, hole:{icon:'🕳️',name:'ثقب'},
+  warp:{icon:'🌀',name:'عبور'}, giant:{icon:'🐘',name:'تضخم'}, steal:{icon:'🕵️',name:'سرقة'},
   bomb:{icon:'🧨',name:'قنبلة'}, oil:{icon:'🛢️',name:'زيت'}, blind:{icon:'🙈',name:'تعمية'}
 };
 const BOT_NAMES=['سارة','خالد','ليلى'];
@@ -540,7 +576,7 @@ function physStep(b,H,dt,ev){
   }else{
     const [gx,gz]=gradAt(H,b.pos.x,b.pos.z);
     let ax=-G*gx,az=-G*gz,fr=FRIC*(H.fricScale||1);
-    if(H.gwind){ax+=H.gwind.x;az+=H.gwind.z;}
+    if(H.gwind){ax+=H.gwind.x;az+=H.gwind.z;}if(H.gwindTemp){ax+=H.gwindTemp.x;az+=H.gwindTemp.z;}
     if(H.traps)for(const t of H.traps){
       if(b.ignoreHidden&&t.grp&&!t.grp.visible)continue;
       if(t.type==='sand'){if(Math.hypot(b.pos.x-t.x,b.pos.z-t.z)<t.r){fr+=7;if(Math.hypot(b.vel.x,b.vel.z)>0.5)b.trapHit=t;}}
@@ -575,6 +611,7 @@ function physStep(b,H,dt,ev){
   if(b.pos.z<-hl){b.pos.z=-hl;if(b.vel.z<0){b.vel.z=-b.vel.z;b.vel.x*=WALL_LOSS;b.vel.z*=WALL_LOSS;}}
   if(b.pos.z>hl){b.pos.z=hl;if(b.vel.z>0){b.vel.z=-b.vel.z;b.vel.x*=WALL_LOSS;b.vel.z*=WALL_LOSS;}}
   if(!b.ghost)for(const w of H.walls){
+    if(w.open)continue;
     if(b.pos.y>heightAt(H,w.x,w.z)+w.h-0.05) continue;
     if(b.ignoreHidden&&w.mesh&&!w.mesh.visible)continue;
     const cx=clamp(b.pos.x,w.x-w.w/2,w.x+w.w/2), cz=clamp(b.pos.z,w.z-w.l/2,w.z+w.l/2);
@@ -781,9 +818,31 @@ document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.targ
 function buzz(ms){try{if(IS_MOBILE&&navigator.vibrate&&!SFX.isMuted())navigator.vibrate(ms);}catch(e){}}
 
 // ---------- game state ----------
-const S={state:'start',mode:'solo',hole:0,H:null,players:[],cur:-1,pendingShot:false,armed:{power:false,jump:false,magnet:false,ghost:false,warp:false,giant:false},shake:0,drag:null,botPull:null,overview:false,mines:[],fx:[],stopTimer:0,acc:0,camYaw:0,camPos:V3(0,10,10),camTgt:V3(0,0,0),course:null,shotBy:null,shots:0,ropes:[],trails:[],portals:[],reveals:[],rules:{diff:'normal',turnTime:20,events:true,maps:[0,1,2,3,4,5]},order:[],seed:1,fans:[],wells:[],spikes:[],camPitch:1.12,camDrag:null,camUserT:0,pickups:[],spinners:[],bumpers:[],waters:[],lastRound:false,finishOrder:[],turnT:TURN_TIME};
-let botCount=3,humCount=2,botCount2=0,holeCount=6;
+const S={state:'start',mode:'solo',hole:0,H:null,players:[],cur:-1,pendingShot:false,armed:{power:false,jump:false,magnet:false,ghost:false,warp:false,giant:false},shake:0,drag:null,botPull:null,overview:false,mines:[],fx:[],stopTimer:0,acc:0,camYaw:0,camPos:V3(0,10,10),camTgt:V3(0,0,0),course:null,shotBy:null,shots:0,ropes:[],trails:[],portals:[],reveals:[],rules:{diff:'normal',turnTime:20,events:true,mode:'classic',maps:[0,1,2,3,4,5]},order:[],seed:1,fans:[],wells:[],spikes:[],camPitch:1.12,camDrag:null,camUserT:0,pickups:[],spinners:[],bumpers:[],waters:[],lastRound:false,finishOrder:[],turnT:TURN_TIME};
+let botCount=3,humCount=2,botCount2=0,botCountNet=0,holeCount=6;
 const TT=()=>S.rules.turnTime||20;
+// ---------- Duel systems (all configurable here) ----------
+const DUEL={startEnergy:3,maxEnergy:6,reactWindow:3,predictReward:1,zoneEnergy:1,chaosRegen:1,loadout:3,gateEveryTactical:2,gateEveryChaos:1,showdownGap:4,showdownBonus:6,showdownPenalty:2,draftTimeout:30,
+  costs:{power:1,jump:1,magnet:1,ghost:1,warp:1,giant:1,shield:1,freeze:2,shove:2,mine:2,swap:2,quake:2,rope:2,curse:2,steal:2,bomb:2,oil:2,blind:2},
+  cat:{power:'حركة',jump:'حركة',magnet:'حركة',ghost:'حركة',warp:'حركة',giant:'حركة',shield:'دفاع',freeze:'تحكم',shove:'هجوم',mine:'هجوم',swap:'تحكم',quake:'هجوم',rope:'تحكم',curse:'تحكم',steal:'مساعدة',bomb:'هجوم',oil:'تحكم',blind:'تحكم'},
+  react:{shield:{icon:'🛡️',name:'درع',cost:1,desc:'يحميك من مهارة هجومية'},anchor:{icon:'⚓',name:'مرساة',cost:1,desc:'لا يمكن دفعك أو تبديلك 3 أدوار'},reverse:{icon:'↩️',name:'انعكاس',cost:2,desc:'أول مهارة تستهدفك ترتد على صاحبها'},wind:{icon:'💨',name:'هبّة ريح',cost:2,desc:'ريح تؤثر على ضربة الخصم القادمة'},trap:{icon:'🪤',name:'فخ رمل',cost:2,desc:'ضع بقعة رمل في طريقه'}},
+  preds:{hole:{icon:'⛳',name:'سيدخل الحفرة'},water:{icon:'💦',name:'سيسقط في خطر'},bank:{icon:'🏓',name:'سيرتد مرتين+'},bump:{icon:'🔴',name:'سيلمس قافزاً'},ability:{icon:'✨',name:'سيستخدم مهارة'},zone:{icon:'🎯',name:'سيدخل منطقة'}},
+  chal:{precision:{icon:'🎯',name:'دقة',desc:'توقّف على بُعد ≤2.5م من الحفرة أو أدخلها: +2⚡ · فشل: −1⚡'},bank:{icon:'🏓',name:'ارتداد',desc:'ارتدّ من جدارين+ وانتهِ أقرب للحفرة: +1⚡ +1★'},noability:{icon:'🙅',name:'بلا مهارات',desc:'سدّد بلا مهارات وانتهِ أقرب: درع لجولة'},long:{icon:'🚀',name:'ضربة بعيدة',desc:'من ≥30م انتهِ على ≤6م أو أدخلها: +2⚡ +2★ · فشل: −1★'}}};
+const MODE=()=>S.rules.mode||'classic';
+function F(){const m=MODE();return {energy:m!=='classic',pred:m!=='classic',react:m!=='classic',zones:m!=='classic',chal:m==='tactical',gates:m==='chaos'?DUEL.gateEveryChaos:m==='tactical'?DUEL.gateEveryTactical:0,draft:m==='tactical',regen:m==='chaos'?DUEL.chaosRegen:0,showdown:m!=='classic',boxEnergy:m==='tactical'};}
+function myPlayer(){return S.mode==='local'?null:S.players.find(q=>q.kind==='human');}
+function giveEnergy(p,n,why){if(!F().energy||!p)return;p.energy=clamp((p.energy|0)+n,0,DUEL.maxEnergy);if(why)toast(`⚡ ${p.name} +${n} طاقة · ${why}`);if(p.spawned)burst(p.pos,12,0xffd23f,0.7,1.2);updateHUD();}
+function skillCost(k){return DUEL.costs[k]!=null?DUEL.costs[k]:2;}
+function canAfford(p,k){if(!F().draft)return p.sk[k]>0;if(!p.loadout||!p.loadout.includes(k))return false;if(p.cd&&p.cd[k]!=null&&p.turnsTaken-p.cd[k]<2)return false;return p.attackBuff>0||p.energy>=skillCost(k);}
+// ---------- bot personalities + persistent learning (this device) ----------
+const BOT_PERS={'سارة':{aim:0.035,pwr:0.06,sab:0.35,risk:0.3,pred:0.65,react:0.5,fav:['freeze','curse','blind','steal','shield'],box:2,style:'smart'},'خالد':{aim:0.075,pwr:0.11,sab:0.95,risk:0.5,pred:0.4,react:0.75,fav:['mine','bomb','shove','oil','swap','rope','quake'],box:3,style:'sly'},'ليلى':{aim:0.055,pwr:0.08,sab:0.5,risk:0.85,pred:0.5,react:0.4,fav:['power','jump','warp','giant','magnet','ghost'],box:11,style:'daring'}};
+const BOTMEM=(()=>{let m={};try{m=JSON.parse(localStorage.getItem('golf-bots')||'{}')||{};}catch(e){}return m;})();
+function botProf(p){const base=BOT_PERS[p.name]||BOT_PERS['سارة'];const mem=BOTMEM[p.name]||(BOTMEM[p.name]={games:0,wins:0,skill:{},pred:{},chal:{},aimN:0,aimOk:0});return {base,mem};}
+function botSave(){try{localStorage.setItem('golf-bots',JSON.stringify(BOTMEM));}catch(e){}}
+function botLearn(p,kind,key,ok){if(!p||p.kind!=='bot')return;const {mem}=botProf(p);const tbl=mem[kind]||(mem[kind]={});const e=tbl[key]||(tbl[key]={n:0,ok:0});e.n++;if(ok)e.ok++;botSave();}
+function botRate(p,kind,key,prior){const {mem}=botProf(p);const e=(mem[kind]||{})[key];if(!e||e.n<2)return prior;return (e.ok+prior*2)/(e.n+2);}
+function botExp(p){const {mem}=botProf(p);return Math.min(1,(mem.games||0)/25);}
+function botsInfo(){return Object.keys(BOTMEM).filter(n=>BOT_PERS[n]).map(n=>{const m=BOTMEM[n];const pr=BOT_PERS[n];return `<span class="ach">🤖 ${n} (${pr?pr.style==='smart'?'الذكية':pr.style==='sly'?'الخبيث':'الجريئة':''}): ${m.games||0} مباراة · ${m.wins||0} فوز</span>`;}).join('');}
 
 const ropeMat=new THREE.LineBasicMaterial({color:0x6b3e1e});
 const ropeGeo1=new THREE.BufferGeometry().setFromPoints([V3(),V3()]),ropeGeo2=new THREE.BufferGeometry().setFromPoints([V3(),V3()]);
@@ -936,6 +995,10 @@ function buildTrapVisual(C,H,t){const y=heightAt(H,t.x,t.z);const tg=new THREE.G
       tg.add(g);S.portals.push({ring,t});}
   if(t.hidden&&S.rules.diff!=='normal')tg.visible=false;
 }
+function gateCandidates(H){return H.walls.map((w,i)=>({w,i})).filter(({w})=>!w.hidden&&Math.hypot(w.x-H.start.x,w.z-H.start.z)>7&&Math.hypot(w.x-H.hole.x,w.z-H.hole.z)>6&&Math.max(w.w,w.l)>=4);}
+function highlightWall(w,on){if(!w||!w.mesh)return;w.mesh.traverse(o=>{if(o.isMesh&&o.material){if(on){if(!o.userData.m0)o.userData.m0=o.material;o.material=o.userData.m0.clone();if(o.material.emissive){o.material.emissive.setHex(0xffb000);o.material.emissiveIntensity=0.9;}}else if(o.userData.m0){o.material=o.userData.m0;}}});}
+function gatePlan(){const every=F().gates;if(!every||!S.H)return;const H=S.H;const cands=gateCandidates(H);if(!cands.length)return;const rs=seeded((S.seed||1)*31+S.hole*17+(S.round||0)*7+5);const pick=cands[Math.floor(rs()*cands.length)];S.gateNext={i:pick.i,atRound:(S.round||0)+every};highlightWall(pick.w,true);setTimeout(()=>{if(S.gateNext&&S.gateNext.i===pick.i)toast(`🚧 الجدار المضيء ${pick.w.open?'سيُغلق':'سيُفتح'} بعد ${every===1?'هذه الجولة':'جولتين'}`);},S.hole===0&&S.round===0?4200:900);}
+function gateTick(){const g=S.gateNext;if(!g||!S.H)return;if((S.round||0)<g.atRound)return;const w=S.H.walls[g.i];S.gateNext=null;if(w){const closing=!!w.open;if(closing&&S.players.some(o=>o.spawned&&!o.holed&&Math.abs(o.pos.x-w.x)<w.w/2+R+0.4&&Math.abs(o.pos.z-w.z)<w.l/2+R+0.4)){toast('🚧 تأجّل إغلاق الجدار: كرة في طريقه');S.gateNext={i:g.i,atRound:S.round+1};return;}highlightWall(w,false);w.open=!w.open;if(w.mesh)w.mesh.visible=!w.open;burst(V3(w.x,heightAt(S.H,w.x,w.z)+0.5,w.z),24,0xffd23f,1.2,1.5);SFX.quake();if(!S.camReduce)S.shake=Math.max(S.shake,0.25);toast(w.open?'🚧 انفتح الجدار! طريق جديد':'🚧 أُغلق الجدار');}gatePlan();}
 function ghostify(obj){obj.traverse(o=>{if(o.isMesh&&o.material){const ms=Array.isArray(o.material)?o.material:[o.material];o.material=ms.length===1?ms[0].clone():ms.map(m=>m.clone());const arr=Array.isArray(o.material)?o.material:[o.material];arr.forEach(m=>{m.transparent=true;m.opacity=0.55;m.emissive&&m.emissive.setHex(0x334455);});}});obj.visible=true;}
 function revealWall(w,quiet){if(!w||!w.mesh||w.mesh.visible)return;w.revealed=true;ghostify(w.mesh);if(!quiet){burst(V3(w.x,heightAt(S.H,w.x,w.z)+0.5,w.z),16,0xffffff,0.7);toast('👻 جدار مخفي انكشف وبقي ظاهراً');}}
 function revealTrap(t,quiet){if(!t||!t.grp||t.grp.visible)return;t.revealed=true;ghostify(t.grp);if(!quiet)toast('⚠️ فخ مخفي انكشف وبقي ظاهراً');}
@@ -1022,6 +1085,8 @@ function loadHole(i,silent){
   for(const u of S.pickups)scene.remove(u.mesh);S.pickups=[];
   S.ropes.forEach(r=>scene.remove(r.line));S.ropes=[];S.players.forEach(p=>{p.cursed=false;p.combo=0;});
   (H.items||[]).forEach((it,k)=>placePickup(k,it.x,it.z));
+  buildZones(C,H);S.round=0;S.gateNext=null;H.walls.forEach(w=>{w.open=false;});gatePlan();
+  {const last=i===holeCount-1;S.showdownElig=null;if(last&&F().showdown&&S.players.length>1){const top=Math.max(...S.players.map(q=>q.pts));const el=S.players.filter(q=>!q.spectator&&top-q.pts>=DUEL.showdownGap).map(q=>q.id);if(el.length){S.showdownElig=el;setTimeout(()=>toast(`🔥 الحفرة الأخيرة: ${el.map(id=>S.players[id].name).join('، ')} يمكنه إعلان العودة قبل أول ضربة`),2600);}}}
   S.lastRound=false;S.finishOrder=[];S.players.forEach(p=>p.finalShot=false);
   const n=S.players.length;
   S.players.forEach((p,k)=>{
@@ -1046,7 +1111,7 @@ function makePlayers(list){
     const color=COLORS[k%COLORS.length];
     const model=makeCharacter(color,d.skin||SKINS[(k*3+1)%SKINS.length]);scene.add(model.g);
     const label=labelSprite(d.name,hex(color));scene.add(label);
-    S.players.push({id:k,name:d.name,color,kind:d.kind,peer:d.peer||null,pos:V3(),vel:V3(),vis:V3(),air:false,holed:false,sunk:false,wet:false,strokes:0,total:0,pts:0,st:{bumps:0,treasure:0,aces:0,skills:0,sabotage:0},frozen:false,shield:false,shieldRounds:0,finalShot:false,spawned:false,sk:SKILL_ZERO(),model,label,lastRest:V3()});
+    S.players.push({id:k,name:d.name,color,kind:d.kind,peer:d.peer||null,pos:V3(),vel:V3(),vis:V3(),air:false,holed:false,sunk:false,wet:false,strokes:0,total:0,pts:0,st:{bumps:0,treasure:0,aces:0,skills:0,sabotage:0},frozen:false,shield:false,shieldRounds:0,finalShot:false,spawned:false,sk:SKILL_ZERO(),model,label,lastRest:V3(),energy:0,loadout:null,cd:{},turnsTaken:0,anchor:0,reverse:0,attackBuff:0,zonesUsed:{},reacted:false});
   });
 }
 function startSolo(){maybeTutorial(()=>{S.mode='solo';S.seed=Math.floor(Math.random()*1e6);makePlayers([{name:'أنت',kind:'human',skin:mySkin()},...BOT_NAMES.slice(0,botCount).map(n=>({name:n,kind:'bot'}))]);beginGame();});}
@@ -1055,7 +1120,7 @@ let wakeLock=null;
 async function keepAwake(){try{if(navigator.wakeLock&&!wakeLock){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null;});}}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&S.H)keepAwake();});
 function maybeTutorial(cb){let seen=false;try{seen=localStorage.getItem('golf-tut')==='1';}catch(e){}if(seen||S.autoplay){cb();return;}$('#tutBox').classList.remove('hidden');$('#tutOk').onclick=()=>{try{localStorage.setItem('golf-tut','1');}catch(e){}$('#tutBox').classList.add('hidden');cb();};}
-function beginGame(){S.order=(S.rules.maps&&S.rules.maps.length?S.rules.maps:HOLES.map((_,i)=>i)).filter(i=>HOLES[i]);if(!S.order.length)S.order=HOLES.map((_,i)=>i);holeCount=S.order.length;keepAwake();$('#start').classList.add('hidden');$('#lobby').classList.add('hidden');S.shots=0;try{if(!history.state||!history.state.g)history.pushState({g:1},'');}catch(e){}loadHole(0);}
+function beginGame(){S.order=(S.rules.maps&&S.rules.maps.length?S.rules.maps:HOLES.map((_,i)=>i)).filter(i=>HOLES[i]);if(!S.order.length)S.order=HOLES.map((_,i)=>i);holeCount=S.order.length;S.players.forEach(p=>{p.energy=F().energy?DUEL.startEnergy:0;p.loadout=null;p.cd={};p.turnsTaken=0;p.anchor=0;p.reverse=0;p.attackBuff=0;p.zonesUsed={};p.reacted=false;});S.round=0;S.turnNo=0;S.showdown=null;S.showdownElig=null;S.tiebreakUsed=false;S.preds=[];S.chal=null;S.draftStarted=false;keepAwake();$('#start').classList.add('hidden');$('#lobby').classList.add('hidden');S.shots=0;try{if(!history.state||!history.state.g)history.pushState({g:1},'');}catch(e){}if(F().draft)openDraft();else loadHole(0);}
 
 function cur(){return S.players[S.cur];}
 function cutRopes(p){S.ropes=S.ropes.filter(r=>{if(r.a===p||r.b===p){scene.remove(r.line);return false;}return true;});}
@@ -1079,6 +1144,7 @@ function nextTurn(){
   let found=-1;
   for(let k=1;k<=n;k++){const i=(S.cur+k)%n;const q=S.players[i];if(!q.holed&&!q.spectator&&(!S.lastRound||q.finalShot)){found=i;break;}}
   if(found<0){endHole();return;}
+  if(S.cur>=0&&found<=S.cur){S.round=(S.round||0)+1;gateTick();}
   S.cur=found;const p=cur();p.finalShot=false;S.turnT=TT();
   if(!p.spawned)spawnPlayer(p);
   if(S.H&&S.H.traps){S.H.traps=S.H.traps.filter(t=>{if(t.temp!=null&&t.owner===p.id){t.temp--;if(t.temp<=0){if(t.grp)S.course.remove(t.grp);S.wells=S.wells.filter(w=>w.t!==t);return false;}}return true;});}
@@ -1087,21 +1153,49 @@ function nextTurn(){
   if(p.frozen){p.frozen=false;p.model.ice.visible=false;toast(`${p.name} متجمد ويخسر هذا الدور ❄️`);S.state='wait';updateHUD();setTimeout(nextTurn,1300);return;}
   if(p.strokes>=MAX_STROKES){p.holed=true;p.sunk=true;p.model.g.visible=false;toast(`${p.name} وصل الحد الأقصى للضربات`);S.state='wait';setTimeout(nextTurn,900);return;}
   p.lastRest=p.pos.clone();
-  S.state='aim';S.armed.power=S.armed.jump=S.armed.magnet=S.armed.ghost=S.armed.warp=S.armed.giant=false;if(S.gp)endGroundPick();
+  S.state='aim';S.armed.power=S.armed.jump=S.armed.magnet=S.armed.ghost=S.armed.warp=S.armed.giant=false;if(S.gp)endGroundPick();startTurnPhase(p,false);
   S.camYaw=Math.atan2(S.H.hole.x-p.pos.x,S.H.hole.z-p.pos.z);
   S.remoteAck=false;S.remoteWait=0;if(S.mode==='online'&&NET.room&&p.kind==='human'){try{NET.room.emit('turn',{id:p.id,hole:S.hole});}catch(e){}}
   if(S.pendingAck&&S.pendingAck.id===p.id&&S.pendingAck.hole===S.hole){S.remoteAck=true;}S.pendingAck=null;
   updateHUD();
-  if(p.kind==='bot')setTimeout(()=>botTurn(p,false),S.autoplay?150:900);
+  if(p.kind==='bot'&&botsRunHere())setTimeout(()=>botTurn(p,false),S.autoplay?150:900);
 }
 
 // Actions go through here so online play can broadcast them.
+function botsRunHere(){return S.mode!=='online'||isHostNow();}
+function startTurnPhase(p,again){
+  if(!again){S.turnNo=(S.turnNo||0)+1;p.turnsTaken=(p.turnsTaken||0)+1;S.preds=[];S.chal=null;if(S.H)S.H.gwindTemp=null;if(S.windArrow)S.windArrow.visible=false;S.players.forEach(o=>o.reacted=false);if(p.anchor>0)p.anchor--;if(F().regen&&p.energy<DUEL.maxEnergy)p.energy+=F().regen;}
+  S.shotEv={wall:0,bump:0,water:0,holed:false,ability:false,zone:false};S.lastWallT=-1;S.shotDone=false;
+  const others=S.players.filter(o=>o!==p&&!o.holed&&!o.spectator);
+  if(F().react&&!again&&others.length){S.phase='react';S.reactT=S.autoplay?0.8:DUEL.reactWindow;S.turnT=TT()+S.reactT;S.reactLog=[];others.forEach(o=>{if(o.kind==='bot'&&botsRunHere())setTimeout(()=>botSide(o,p),200+Math.random()*700);});}
+  else S.phase='aim';
+  if(F().pred&&!again&&!F().react){others.forEach(o=>{if(o.kind==='bot'&&botsRunHere())setTimeout(()=>botSide(o,p),300);});}
+  updateHUD();}
+function endReact(){if(S.phase!=='react')return;S.phase='aim';if(S.gp&&S.gp.side)endGroundPick();if(S.reactLog&&S.reactLog.length)toast('⚡ '+S.reactLog.join(' · '));updateHUD();}
+function doSide(a){const from=a.from!=null?S.players[a.from]:myPlayer();if(!from)return false;a.from=from.id;const ok=applySide(a,from);if(ok&&S.mode==='online'&&NET.room){NET.room.emit('side',{a}).catch(()=>{});}return ok;}
+function applySide(a,from){
+  if(a&&from&&a.t==='draft'){if(!Array.isArray(a.keys)||from.loadout)return false;from.loadout=a.keys.filter(k=>SKILLS[k]).slice(0,DUEL.loadout);from.loadout.forEach(k=>{from.sk[k]=99;});checkDraftDone();return true;}
+  if(!a||!from||S.state!=='aim'||from===cur()||from.holed||from.spectator)return false;
+  if(a.t==='predict'){if(!F().pred||!DUEL.preds[a.k]||!predAllowed(a.k))return false;if((S.preds||[]).some(x=>x.pid===from.id))return false;S.preds.push({pid:from.id,k:a.k});toast(`🔮 ${from.name} توقّع: ${DUEL.preds[a.k].name}`);updateHUD();return true;}
+  if(a.t==='react'){if(!F().react||S.phase!=='react')return false;const Rx=DUEL.react[a.k];if(!Rx||from.energy<Rx.cost||from.reacted)return false;const tgt=cur();let ok=true;
+    if(a.k==='shield'){from.shield=true;from.shieldRounds=2;from.model.shield.visible=true;}
+    else if(a.k==='anchor'){from.anchor=3;}
+    else if(a.k==='reverse'){from.reverse=1;}
+    else if(a.k==='wind'){const L=Math.hypot(+a.dx||0,+a.dz||0)||1;S.H.gwindTemp={x:(+a.dx||0)/L*5.5,z:(+a.dz||0)/L*5.5};showWindArrow(tgt,S.H.gwindTemp);}
+    else if(a.k==='trap'){const tx=+a.x||0,tz=+a.z||0;if(!dryLand(S.H,tx,tz,1.0)||S.players.some(o=>o.spawned&&!o.holed&&Math.hypot(o.pos.x-tx,o.pos.z-tz)<3.2)||Math.hypot(tx-S.H.hole.x,tz-S.H.hole.z)<3.5)ok=false;else{const t={type:'sand',x:tx,z:tz,r:2.2,temp:2,owner:from.id};S.H.traps.push(t);buildTrapVisual(S.course,S.H,t);burst(V3(tx,heightAt(S.H,tx,tz),tz),16,0xf1dca5,0.8);}}
+    else ok=false;
+    if(!ok){if(isLocalHuman(from))toast('مكان غير صالح للفخ');return false;}
+    from.energy-=Rx.cost;from.reacted=true;(S.reactLog||(S.reactLog=[])).push(`${Rx.icon} ${from.name}: ${Rx.name}`);toast(`${Rx.icon} ${from.name} استخدم ${Rx.name}`);SFX.skill();if(from.spawned)burst(from.pos,14,0x7cd8ff,0.7);updateHUD();return true;}
+  if(a.t==='draft'){if(!Array.isArray(a.keys))return false;from.loadout=a.keys.filter(k=>SKILLS[k]).slice(0,DUEL.loadout);from.loadout.forEach(k=>{from.sk[k]=99;});checkDraftDone();return true;}
+  return false;}
+function predAllowed(k){const H=S.H,p=cur();if(!H||!p)return false;if(k==='hole'||k==='bank')return true;if(k==='water')return H.water.length>0||(H.traps||[]).some(t=>t.type==='well');if(k==='bump')return (H.traps||[]).some(t=>t.type==='bump');if(k==='ability')return F().draft?(p.energy>0||p.attackBuff>0):Object.keys(SKILL_MAX).some(x=>p.sk[x]>0);if(k==='zone')return !!(S.zones&&S.zones.length);return false;}
+function showWindArrow(p,w){if(!S.windArrow){const g=new THREE.Mesh(new THREE.PlaneGeometry(1.2,2.2),new THREE.MeshBasicMaterial({map:arrowTexture(),color:0x9fe6ff,transparent:true,opacity:0.9,depthTest:false,side:THREE.DoubleSide}));g.rotation.x=-Math.PI/2;g.renderOrder=5;scene.add(g);S.windArrow=g;}const a=S.windArrow;a.visible=true;a.position.set(p.pos.x,p.pos.y+0.12,p.pos.z);a.rotation.z=-Math.atan2(w.x,w.z)+Math.PI;a.rotation.set(-Math.PI/2,0,-Math.atan2(w.x,-w.z));}
 function forceSkipRemote(){const p=S.cur>=0?cur():null;if(!p||p.kind!=='remote'||S.state!=='aim')return;
   if(S.mode==='online'&&NET.room){try{NET.sendAct({t:'skip'});}catch(e){}}
   toast(`⏳ ${p.name} لم يسدد، تم تخطي دوره`);applyAction({t:'skip'});}
 function doAction(a){
   if(a.t==='shot'&&cur()&&cur().cursed){const dev=(Math.random()<0.5?-1:1)*rnd(0.45,0.8);const c=Math.cos(dev),sn=Math.sin(dev);const nx=a.dx*c-a.dz*sn,nz=a.dx*sn+a.dz*c;a.dx=nx;a.dz=nz;a.cursed=true;}
-  if(S.mode==='online'&&NET.room&&isLocalHuman(cur())){NET.sendAct(a);}
+  if(S.mode==='online'&&NET.room&&(isLocalHuman(cur())||(cur()&&cur().kind==='bot'&&isHostNow()))){NET.sendAct(a);}
   applyAction(a);
 }
 function applyAction(a){
@@ -1109,10 +1203,13 @@ function applyAction(a){
   if(a.t!=='skip'){p.missed=0;}
   if(a.t==='shot'){S.armed.jump=!!a.jump&&p.sk.jump>0;S.armed.power=!!a.boost&&p.sk.power>0;S.armed.magnet=!!a.magnet&&p.sk.magnet>0;S.armed.ghost=!!a.ghost&&p.sk.ghost>0;S.armed.warp=!!a.warp&&p.sk.warp>0;S.armed.giant=!!a.giant&&p.sk.giant>0;shoot(p,a.dx,a.dz,a.pw);}
   else if(a.t==='skill'){useSkill(p,a.k,a.target!=null?S.players[a.target]:null,a.rnd,a);}
+  else if(a.t==='chal'){declareChal(p,a.k);}
+  else if(a.t==='showdown'){declareShowdown(p);}
   else if(a.t==='skip'){p.strokes++;p.missed=(p.missed||0)+1;if(p.missed>=2&&p.kind!=='bot'){p.spectator=true;toast(`👁️ ${p.name} غاب دورين وانتقل إلى المشاهدين`);}else toast(`⏱ انتهى وقت ${p.name}: +1 ضربة`);S.state='wait';updateHUD();setTimeout(nextTurn,700);}
 }
 
 function shoot(p,dx,dz,pw){
+  if(S.phase==='react')endReact();S.shotDone=true;
   p.strokes++;S.shots++;p.blind=false;
   const v=shotSpeed(pw)*(S.armed.power?1.25:1);
   p.vel.set(dx*v,0,dz*v);
@@ -1127,10 +1224,27 @@ function shoot(p,dx,dz,pw){
   updateHUD();
 }
 
+function resolveTurn(){
+  if(!S.shotDone)return;S.shotDone=false;const p=S.shotBy||cur();if(!p||!S.H)return;const H=S.H;const ev=S.shotEv||{};
+  if(F().zones&&S.zones){S.zones.forEach((z,zi)=>{if(p.holed||!p.spawned||p.wet)return;if(Math.hypot(p.pos.x-z.x,p.pos.z-z.z)>z.r)return;const key=S.hole+':'+zi;if(p.zonesUsed[key])return;p.zonesUsed[key]=1;ev.zone=true;zoneHit(p,z);});}
+  if(S.chal&&S.chal.pid===p.id){const c=S.chal;S.chal=null;const d=Math.hypot(p.pos.x-H.hole.x,p.pos.z-H.hole.z);let win=false,msg='';
+    if(c.k==='precision'){win=p.holed||d<=2.5;if(win)giveEnergy(p,2,'تحدي الدقة ✅');else{p.energy=Math.max(0,p.energy-1);msg='فشل تحدي الدقة −1⚡';}}
+    else if(c.k==='bank'){win=ev.wall>=2&&(p.holed||d<c.d0);if(win){p.pts+=1;giveEnergy(p,1,'تحدي الارتداد ✅ +1★');}else msg='فشل تحدي الارتداد';}
+    else if(c.k==='noability'){win=!ev.ability&&(p.holed||d<c.d0);if(win){p.shield=true;p.shieldRounds=2;p.model.shield.visible=true;toast(`🛡️ ${p.name} ربح درعاً من تحدي «بلا مهارات»`);}else msg='فشل تحدي بلا مهارات';}
+    else if(c.k==='long'){win=p.holed||d<=6;if(win){p.pts+=2;giveEnergy(p,2,'الضربة البعيدة ✅ +2★');}else{p.pts=Math.max(0,p.pts-1);msg='فشلت الضربة البعيدة −1★';}}
+    if(win){burst(p.pos,30,0xffd23f,1.4,2);SFX.holed();}else if(msg)toast(`❌ ${p.name}: ${msg}`);botLearn(p,'chal',c.k,win);}
+  if(S.preds&&S.preds.length){S.preds.forEach(pr=>{const q=S.players[pr.pid];if(!q)return;const hit=pr.k==='hole'?!!ev.holed:pr.k==='water'?!!ev.water:pr.k==='bank'?ev.wall>=2:pr.k==='bump'?ev.bump>=1:pr.k==='ability'?!!ev.ability:pr.k==='zone'?!!ev.zone:false;if(hit){giveEnergy(q,DUEL.predictReward,`توقّع صحيح: ${DUEL.preds[pr.k].name}`);if(q.spawned)burst(q.pos,20,0x7cd8ff,1.0,1.5);SFX.pickup();}else if(isLocalHuman(q))toast(`🔮 لم يتحقق توقعك (${DUEL.preds[pr.k].name})`);botLearn(q,'pred',pr.k,hit);});S.preds=[];}
+  if(S.lastBotSkill&&S.lastBotSkill.tid===p.id){const L=S.lastBotSkill;S.lastBotSkill=null;const q=S.players[L.pid];const d=Math.hypot(p.pos.x-H.hole.x,p.pos.z-H.hole.z);const ok=p.wet||p.strokes-L.s0>=2||(!p.holed&&d>L.d0+2);botLearn(q,'skill',L.k,ok);}
+  if(p.kind==='bot'){const {mem}=botProf(p);mem.aimN=(mem.aimN||0)+1;const d=Math.hypot(p.pos.x-H.hole.x,p.pos.z-H.hole.z);if(p.holed||d<3)mem.aimOk=(mem.aimOk||0)+1;}
+  if(S.showdown&&!S.showdown.done&&S.showdown.pid===p.id&&p.holed){S.showdown.done=true;if(S.finishOrder[0]===p){p.pts+=DUEL.showdownBonus;toast(`🔥 عودة أسطورية! ${p.name} أنهى الحفرة أولاً +${DUEL.showdownBonus}★`);confetti();SFX.win();}else{p.pts=Math.max(0,p.pts-DUEL.showdownPenalty);toast(`💀 فشلت عودة ${p.name} −${DUEL.showdownPenalty}★`);}}
+  H.gwindTemp=null;if(S.windArrow)S.windArrow.visible=false;updateHUD();}
+function declareChal(p,k){if(!F().chal||!DUEL.chal[k]||S.chal||S.state!=='aim')return false;const d=Math.hypot(p.pos.x-S.H.hole.x,p.pos.z-S.H.hole.z);if(k==='long'&&d<30){if(isLocalHuman(p))toast('الضربة البعيدة تحتاج مسافة 30م على الأقل');return false;}S.chal={pid:p.id,k,d0:d};toast(`${DUEL.chal[k].icon} ${p.name} أعلن تحدي «${DUEL.chal[k].name}»`);SFX.skill();updateHUD();return true;}
+function declareShowdown(p){if(!F().showdown||S.showdown||!S.showdownElig||!S.showdownElig.includes(p.id)||p.strokes>0)return false;S.showdown={pid:p.id,done:false};toast(`🔥 ${p.name} أعلن العودة: إن أنهى الحفرة أولاً +${DUEL.showdownBonus}★ وإلا −${DUEL.showdownPenalty}★`);S.shake=Math.max(S.shake,0.3);SFX.quake();updateHUD();return true;}
 function onAllStopped(){
+  resolveTurn();
   if(S.H&&S.H.treasure&&!S.treasureFound){const T=S.H.treasure;const f=S.players.find(b=>b.spawned&&!b.holed&&Math.hypot(b.pos.x-T.x,b.pos.z-T.z)<2.2);if(f){S.treasureFound=true;f.pts+=3;f.st.treasure++;burst(V3(T.x,heightAt(S.H,T.x,T.z),T.z),40,0xffd23f,1.6,2.5);SFX.holed();toast(`💎 ${f.name} اكتشف الكنز المخفي! +3★`);const ch=new THREE.Mesh(new THREE.BoxGeometry(1,0.7,0.7),new THREE.MeshStandardMaterial({color:0xffd23f,emissive:0xaa7700,emissiveIntensity:0.5}));ch.position.set(T.x,heightAt(S.H,T.x,T.z)+0.35,T.z);S.course.add(ch);updateHUD();}}
   S.players.forEach(p=>{if(!p.holed)p.lastRest=p.pos.clone();p.magnet=false;p.ghost=false;p.warp=false;p.giant=false;p.ram=false;p.spikeHit=false;p.spikeDone=false;p.combo=0;p.bumpN=0;});
-  if(S.pendingShot){S.pendingShot=false;S.state='aim';S.turnT=TT();S.remoteAck=false;S.remoteWait=0;const p=cur();if(S.mode==='online'&&NET.room&&p.kind==='human'){try{NET.room.emit('turn',{id:p.id,hole:S.hole});}catch(e){}}S.camYaw=Math.atan2(S.H.hole.x-p.pos.x,S.H.hole.z-p.pos.z);updateHUD();if(p.kind==='bot')setTimeout(()=>botTurn(p,true),600);return;}
+  if(S.pendingShot){S.pendingShot=false;S.state='aim';S.turnT=TT();S.remoteAck=false;S.remoteWait=0;const p=cur();startTurnPhase(p,true);if(S.mode==='online'&&NET.room&&p.kind==='human'){try{NET.room.emit('turn',{id:p.id,hole:S.hole});}catch(e){}}S.camYaw=Math.atan2(S.H.hole.x-p.pos.x,S.H.hole.z-p.pos.z);updateHUD();if(p.kind==='bot'&&botsRunHere())setTimeout(()=>botTurn(p,true),600);return;}
   nextTurn();
 }
 
@@ -1139,16 +1253,18 @@ function confetti(){const c=$('#confetti');if(!c||(window.matchMedia&&window.mat
 function scoreName(st,par){const d=st-par;if(st===1)return 'ضربة واحدة! 🎯';if(d<=-3)return 'ألباتروس 🦅';if(d===-2)return 'إيغل 🦅';if(d===-1)return 'بيردي 🐦';if(d===0)return 'بار';if(d===1)return 'بوغي';if(d===2)return 'دبل بوغي';return `+${d}`;}
 function endHole(){
   S.state='board';
+  if(S.showdown&&!S.showdown.done){const q=S.players[S.showdown.pid];S.showdown.done=true;if(q){q.pts=Math.max(0,q.pts-DUEL.showdownPenalty);toast(`💀 لم تنجح عودة ${q.name} −${DUEL.showdownPenalty}★`);}}
   S.players.forEach(p=>{p.holePts=0;if(!p.holed&&!p.spectator){p.strokes+=2;}if(p.spectator){p.strokes=0;}p.total+=p.strokes;});
   S.finishOrder.forEach((p,i)=>{let b=ORDER_PTS[i]||1;if(p.strokes===1)b+=3;else if(p.strokes<S.H.par)b+=2;else if(p.strokes===S.H.par)b+=1;p.holePts=b;p.pts+=b;});
-  const last=S.hole===holeCount-1;
+  let last=S.hole===holeCount-1;
+  if(last&&F().showdown&&!S.tiebreakUsed&&S.players.length>1){const r0=[...S.players].filter(q=>!q.spectator).sort((a,b)=>(b.pts-a.pts)||(a.total-b.total));if(r0.length>1&&r0[0].pts===r0[1].pts&&r0[0].total===r0[1].total){S.tiebreakUsed=true;const rs=seeded((S.seed||1)*3+99);const pool=HOLES.map((_,i)=>i).filter(i=>!S.order.includes(i));const extra=pool.length?pool[Math.floor(rs()*pool.length)]:S.order[0];S.order.push(extra);holeCount++;last=false;setTimeout(()=>toast('🤝 تعادل تام! حفرة فصل إضافية'),400);}}
   $('#boardTitle').textContent=last?'النتيجة النهائية':`نتيجة الحفرة ${S.hole+1}: ${S.H.name}`;
   const rows=[...S.players].sort((a,b)=>(b.pts-a.pts)||(a.total-b.total));
   $('#boardBody').innerHTML=rows.map((p,i)=>`<tr class="${p.kind==='human'&&S.mode!=='local'?'me':''} ${i===0?'first':''}"><td>${last?['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'][i]+' ':''}${p.name}</td><td class="num">${p.holed?p.strokes:'✗'} <small style="color:var(--muted)">${p.holed?scoreName(p.strokes,S.H.par):'لم يُدخلها'} · +${p.holePts}★</small></td><td class="num"><b class="cnt" data-v="${p.pts}">${p.pts}</b>★ <small style="color:var(--muted)">(${p.total})</small></td></tr>`).join('');animateCounts();
   const ach=$('#achievements');if(last){const pick=(fn,label,icon)=>{let best=null,bv=0;S.players.forEach(p=>{const v=fn(p);if(v>bv){bv=v;best=p;}});return best?`<span class="ach">${icon} ${label}: <b>${best.name}</b> (${bv})</span>`:'';};
-    const champ=rows[0];const me=S.players.find(p=>p.kind==='human');let bestTxt='';
+    const champ=rows[0];const me=S.players.find(p=>p.kind==='human');let bestTxt='';S.players.forEach(q=>{if(q.kind==='bot'){const {mem}=botProf(q);mem.games=(mem.games||0)+1;if(q===champ)mem.wins=(mem.wins||0)+1;}});botSave();
     if(me){try{const prev=JSON.parse(localStorage.getItem('golf-best')||'null');if(!prev||me.pts>prev.pts){localStorage.setItem('golf-best',JSON.stringify({pts:me.pts,strokes:me.total,d:Date.now()}));bestTxt=`<span class="ach new">🏅 رقم قياسي جديد لك: ${me.pts}★</span>`;}else bestTxt=`<span class="ach">🏅 أفضل نتيجة لك: ${prev.pts}★</span>`;}catch(e){}}
-    ach.innerHTML=`<span class="ach gold">🏆 البطل: <b>${champ.name}</b></span>`+pick(p=>p.st.bumps,'المخرّب','💥')+pick(p=>p.st.sabotage,'الماكر','🕵️')+pick(p=>p.st.treasure,'صائد الكنوز','💎')+pick(p=>p.st.aces,'القناص','🎯')+pick(p=>p.st.skills,'الساحر','✨')+bestTxt;ach.classList.remove('hidden');}
+    ach.innerHTML=`<span class="ach gold">🏆 البطل: <b>${champ.name}</b></span>`+pick(p=>p.st.bumps,'المخرّب','💥')+pick(p=>p.st.sabotage,'الماكر','🕵️')+pick(p=>p.st.treasure,'صائد الكنوز','💎')+pick(p=>p.st.aces,'القناص','🎯')+pick(p=>p.st.skills,'الساحر','✨')+bestTxt+(S.players.some(q=>q.kind==='bot')?botsInfo():'');ach.classList.remove('hidden');}
   else ach.classList.add('hidden');
   $('#rematchBtn').classList.toggle('hidden',!(last&&S.mode==='online'&&isHostNow()));
   $('#nextBtn').textContent=last?(S.mode==='online'?'العودة للغرفة':'العب مجدداً'):'الحفرة التالية';
@@ -1157,7 +1273,7 @@ function endHole(){
   if(S.autoplay){setTimeout(()=>{if(S.state==='board')$('#nextBtn').click();},2500);}
   if(S.mode==='online'&&!last){clearTimeout(S.autoNext);S.autoNext=setTimeout(()=>{if(S.state==='board'){$('#board').classList.add('hidden');loadHole(S.hole+1);}},5000);}
 }
-$('#rematchBtn').addEventListener('click',()=>{$('#board').classList.add('hidden');S.players.forEach(p=>{p.total=0;p.pts=0;p.sk=SKILL_ZERO();p.st={bumps:0,treasure:0,aces:0,skills:0,sabotage:0};});const data={players:S.players.map(p=>({peer:p.peer,name:p.name,skin:p.model?undefined:undefined})),rules:S.rules,seed:Math.floor(Math.random()*1e6)};data.players=seats().map(p=>({peer:p.peer,name:String(p.presence.name).slice(0,14),skin:SKINS.includes(p.presence.skin)?p.presence.skin:'classic'}));if(!data.players.length)return;NET.room.emit('start',data).catch(()=>{});onNetStart(data);});
+$('#rematchBtn').addEventListener('click',()=>{$('#board').classList.add('hidden');S.players.forEach(p=>{p.total=0;p.pts=0;p.sk=SKILL_ZERO();p.st={bumps:0,treasure:0,aces:0,skills:0,sabotage:0};});const data={players:S.players.map(p=>({peer:p.peer,name:p.name,skin:p.skinId||'classic',bot:p.kind==='bot'?1:0})),rules:S.rules,seed:Math.floor(Math.random()*1e6)};data.players=seats().map(p=>({peer:p.peer,name:String(p.presence.name).slice(0,14),skin:SKINS.includes(p.presence.skin)?p.presence.skin:'classic'}));if(!data.players.length)return;NET.room.emit('start',data).catch(()=>{});onNetStart(data);});
 $('#nextBtn').addEventListener('click',()=>{
   $('#board').classList.add('hidden');
   if(S.hole===holeCount-1){
@@ -1172,21 +1288,29 @@ $('#nextBtn').addEventListener('click',()=>{
 // ---------- skills & sabotage ----------
 const MINE_R=9,BOMB_R=16,OIL_R=12;
 function nearPoint(p,x,z,rad){if(x==null||z==null||!isFinite(+x)||!isFinite(+z))return [p.pos.x,p.pos.z];let dx=+x-p.pos.x,dz=+z-p.pos.z;const d=Math.hypot(dx,dz);if(d>rad){dx*=rad/d;dz*=rad/d;}const H=S.H;return [clamp(p.pos.x+dx,-H.w/2+1,H.w/2-1),clamp(p.pos.z+dz,-H.l/2+1,H.l/2-1)];}
-function useSkill(p,key,target,r,opt){opt=opt||{};
+function useSkill(p,key,target,r,opt){
+  if(F().draft){if(!canAfford(p,key)){if(isLocalHuman(p))toast(p.cd&&p.cd[key]!=null&&p.turnsTaken-p.cd[key]<2?'هذه المهارة في فترة تهدئة ⏳':'لا تملك طاقة كافية ⚡');return false;}
+    const armedKey=['power','jump','magnet','ghost','warp','giant'].includes(key);const res=useSkillCore(p,key,target,r,opt);
+    if(res){if(armedKey&&!S.armed[key]){p.energy=clamp(p.energy+skillCost(key),0,DUEL.maxEnergy);}else{if(p.attackBuff>0)p.attackBuff--;else p.energy-=skillCost(key);p.cd[key]=p.turnsTaken;S.shotEv.ability=true;}p.sk[key]=99;updateHUD();}
+    return res;}
+  const res=useSkillCore(p,key,target,r,opt);if(res){S.shotEv.ability=true;if(p.kind==='bot'&&target&&target!==p)S.lastBotSkill={pid:p.id,k:key,tid:target.id,s0:target.strokes,d0:Math.hypot(target.pos.x-S.H.hole.x,target.pos.z-S.H.hole.z)};}return res;}
+function useSkillCore(p,key,target,r,opt){opt=opt||{};
   if(p.sk[key]<=0)return false;SFX.skill();
   if(key!=='power'&&key!=='jump'&&key!=='magnet'&&key!=='ghost'&&key!=='warp'&&key!=='giant'){p.st.skills++;if(target||key==='quake'||key==='mine'||key==='bomb'||key==='oil')p.st.sabotage++;}
   if(key==='steal'&&target){p.sk.steal--;const ks=Object.keys(SKILL_MAX).filter(k=>target.sk[k]>0&&k!=='steal');if(!ks.length){toast(`${target.name} لا يملك مهارات لسرقتها`);updateHUD();return true;}if(target.shield){target.shield=false;target.shieldRounds=0;target.model.shield.visible=false;toast(`درع ${target.name} صدّ السرقة`);updateHUD();return true;}const k=ks[Math.floor((r==null?Math.random():r)*ks.length)%ks.length];target.sk[k]--;if(p.sk[k]<SKILL_MAX[k])p.sk[k]++;burst(target.pos,16,0x333a44,0.7);toast((p.kind==='human'||target.kind==='human')?`🕵️ ${p.name} سرق ${SKILLS[k].name} من ${target.name}`:`🕵️ ${p.name} سرق مهارة من ${target.name}`);updateHUD();return true;}
   if(key==='hole'){p.sk.hole--;const t={type:'well',x:p.pos.x,z:p.pos.z,r:5.5,temp:3,owner:p.id};S.H.traps.push(t);buildTrapVisual(S.course,S.H,t);burst(p.pos,20,0x8e44ad,0.9);toast(`🕳️ ${p.name} فتح ثقباً جاذباً لثلاث جولات`);updateHUD();return true;}
   if(key==='power'||key==='jump'||key==='magnet'||key==='ghost'||key==='warp'||key==='giant'){S.armed[key]=!S.armed[key];if(key==='power'&&S.armed.power)S.armed.jump=false;if(key==='jump'&&S.armed.jump)S.armed.power=false;updateHUD();return true;}
-  if(key==='quake'){p.sk.quake--;let moved=false;S.players.forEach((o,i)=>{if(o===p||o.holed||!o.spawned)return;if(o.shield){o.shield=false;o.shieldRounds=0;o.model.shield.visible=false;return;}const a=((r==null?Math.random():r)+i*0.37)*Math.PI*2;o.vel.set(Math.cos(a)*9,0,Math.sin(a)*9);moved=true;});
+  if(key==='quake'){p.sk.quake--;let moved=false;S.players.forEach((o,i)=>{if(o===p||o.holed||!o.spawned)return;if(o.shield){o.shield=false;o.shieldRounds=0;o.model.shield.visible=false;return;}if(o.anchor)return;const a=((r==null?Math.random():r)+i*0.37)*Math.PI*2;o.vel.set(Math.cos(a)*9,0,Math.sin(a)*9);moved=true;});
     toast(`${p.name} أطلق زلزالاً 🌋`);S.shake=0.6;SFX.quake();if(moved){S.shotBy=p;S.pendingShot=true;S.state='moving';S.stopTimer=0;S.acc=0;}updateHUD();return moved?'moved':true;}
   if(key==='shield'){p.sk.shield--;p.shield=true;p.shieldRounds=1;p.model.shield.visible=true;toast(`${p.name} فعّل الدرع 🛡️`);updateHUD();return true;}
   if(key==='mine'){p.sk.mine--;const [mx,mz]=nearPoint(p,opt.x,opt.z,MINE_R);placeMine(p,mx,mz);toast(`${p.name} زرع لغماً 💣`);updateHUD();return true;}
-  if(key==='bomb'){p.sk.bomb--;const [bx,bz]=nearPoint(p,opt.x,opt.z,BOMB_R);explode(V3(bx,heightAt(S.H,bx,bz),bz));let moved=false;S.players.forEach(o=>{if(o.holed||!o.spawned||o.wet)return;let dx=o.pos.x-bx,dz=o.pos.z-bz;const d=Math.hypot(dx,dz);if(d>4.5)return;if(o.shield){o.shield=false;o.shieldRounds=0;o.model.shield.visible=false;return;}if(d<0.05){dx=1;dz=0;}else{dx/=d;dz/=d;}const f=4+11*(1-d/4.5);o.vel.x+=dx*f;o.vel.z+=dz*f;moved=true;if(o!==p)p.pts+=1;});toast(`🧨 ${p.name} فجّر قنبلة!`);S.shake=0.5;if(moved){S.shotBy=p;S.pendingShot=true;S.state='moving';S.stopTimer=0;S.acc=0;}updateHUD();return moved?'moved':true;}
+  if(key==='bomb'){p.sk.bomb--;const [bx,bz]=nearPoint(p,opt.x,opt.z,BOMB_R);explode(V3(bx,heightAt(S.H,bx,bz),bz));let moved=false;S.players.forEach(o=>{if(o.holed||!o.spawned||o.wet)return;let dx=o.pos.x-bx,dz=o.pos.z-bz;const d=Math.hypot(dx,dz);if(d>4.5)return;if(o.shield){o.shield=false;o.shieldRounds=0;o.model.shield.visible=false;return;}if(o.anchor&&o!==p)return;if(d<0.05){dx=1;dz=0;}else{dx/=d;dz/=d;}const f=4+11*(1-d/4.5);o.vel.x+=dx*f;o.vel.z+=dz*f;moved=true;if(o!==p)p.pts+=1;});toast(`🧨 ${p.name} فجّر قنبلة!`);S.shake=0.5;if(moved){S.shotBy=p;S.pendingShot=true;S.state='moving';S.stopTimer=0;S.acc=0;}updateHUD();return moved?'moved':true;}
   if(key==='oil'){p.sk.oil--;const [ox,oz]=nearPoint(p,opt.x,opt.z,OIL_R);const t={type:'oil',x:ox,z:oz,r:3,temp:3,owner:p.id};S.H.traps.push(t);buildTrapVisual(S.course,S.H,t);burst(V3(ox,heightAt(S.H,ox,oz),oz),18,0x2c3e50,0.8);toast(`🛢️ ${p.name} سكب زيتاً زلقاً لثلاث جولات`);updateHUD();return true;}
   if(!target)return false;
   p.sk[key]--;
   if(target.shield){target.shield=false;target.shieldRounds=0;target.model.shield.visible=false;toast(`درع ${target.name} صدّ هجوم ${p.name}! 🛡️`);updateHUD();return true;}
+  if(target.reverse&&['curse','freeze','blind','shove','steal'].includes(key)){target.reverse=0;toast(`↩️ انعكاس! ${key==='steal'?'سرقة':SKILLS[key].name} ${p.name} ارتدت عليه`);burst(target.pos,16,0x7cd8ff,0.8);target=p;}
+  if(target.anchor&&(key==='shove'||key==='swap'||key==='rope')){toast(`⚓ ${target.name} مرسى ولا يمكن تحريكه`);updateHUD();return true;}
   if(key==='blind'){target.blind=true;burst(target.pos,16,0x6c5ce7,0.7);toast(`🙈 ${p.name} أعمى ${target.name}: ضربته القادمة بلا خط تصويب`);updateHUD();return true;}
   if(key==='rope'){let other=opt.target2!=null?S.players[opt.target2|0]:null;if(!other||other===target||other===p||!other.spawned||other.holed){const others=S.players.filter(o=>o!==p&&o!==target&&o.spawned&&!o.holed).sort((u,v)=>Math.hypot(u.pos.x-target.pos.x,u.pos.z-target.pos.z)-Math.hypot(v.pos.x-target.pos.x,v.pos.z-target.pos.z));other=others[0];}if(!other){p.sk.rope++;toast('الحبل يحتاج لاعبَين آخرين');updateHUD();return true;}addRope(target,other,2);burst(target.pos,14,0xc49a6c,0.6);burst(other.pos,14,0xc49a6c,0.6);toast(`🪢 ${p.name} ربط ${target.name} مع ${other.name} بحبل`);updateHUD();return true;}
   if(key==='curse'){target.cursed=true;burst(target.pos,20,0x8e44ad,0.8);toast(`🔮 ${p.name} ألقى لعنة على ${target.name}: ضربته القادمة ستنحرف`);updateHUD();return true;}
@@ -1215,6 +1339,10 @@ function iconSprite(text){
 }
 const boxMat=new THREE.MeshStandardMaterial({color:0xa36bd1,emissive:0x6d3fa0,emissiveIntensity:0.35,roughness:0.35});
 const boxEdgeMat=new THREE.LineBasicMaterial({color:0xffe066});
+function genZones(H,hi){if(!F().zones)return [];const rs=seeded(hi*53+(S.seed||1)*7+9);const out=[];const kinds=['energy',hi%2?'attack':'defense'];for(const kind of kinds){for(let k=0;k<60;k++){const x=(rs()-0.5)*(H.w-6),z=(rs()-0.5)*(H.l-6);if(!dryLand(H,x,z,2.6))continue;if(Math.hypot(x-H.start.x,z-H.start.z)<7||Math.hypot(x-H.hole.x,z-H.hole.z)<6)continue;if((H.items||[]).some(it=>Math.hypot(it.x-x,it.z-z)<3))continue;if(out.some(o=>Math.hypot(o.x-x,o.z-z)<8))continue;if((H.traps||[]).some(t=>Math.hypot(t.x-x,t.z-z)<(t.r||2)+2.5))continue;
+  const dx=H.hole.x-H.start.x,dz=H.hole.z-H.start.z,L=Math.hypot(dx,dz)||1;const px=x-H.start.x,pz=z-H.start.z;const t=clamp((px*dx+pz*dz)/(L*L),0,1);const off=Math.hypot(px-dx*t,pz-dz*t);if(off<4)continue;out.push({kind,x,z,r:2.3});break;}}return out;}
+function buildZones(C,H){const hi=S.order[S.hole]!=null?S.order[S.hole]:S.hole;S.zones=(typeof ZONES!=='undefined'&&ZONES[hi])?ZONES[hi].map(z=>({kind:z.kind,x:z.x*MAP_SCALE,z:z.z*MAP_SCALE,r:z.r||2.3})):genZones(H,hi);S.zoneMeshes=[];S.zones.forEach((z,i)=>{const col=z.kind==='energy'?0xffd23f:z.kind==='defense'?0x4ea8ff:0xff5a5a;const y=heightAt(H,z.x,z.z);const g=new THREE.Group();g.position.set(z.x,y,z.z);const disc=new THREE.Mesh(new THREE.CircleGeometry(z.r,36),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.22,depthWrite:false}));disc.rotation.x=-Math.PI/2;disc.position.y=0.03;g.add(disc);const ring=new THREE.Mesh(new THREE.RingGeometry(z.r-0.12,z.r,40),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.9,side:THREE.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=0.04;g.add(ring);const ic=iconSprite(z.kind==='energy'?'⚡':z.kind==='defense'?'🛡️':'⚔️');ic.position.y=1.1;g.add(ic);C.add(g);S.zoneMeshes.push({g,ring,disc,z});});}
+function zoneHit(p,z){const col=z.kind==='energy'?0xffd23f:z.kind==='defense'?0x4ea8ff:0xff5a5a;burst(V3(z.x,heightAt(S.H,z.x,z.z),z.z),28,col,1.3,2);SFX.pickup();if(z.kind==='energy')giveEnergy(p,DUEL.zoneEnergy,'منطقة الطاقة');else if(z.kind==='defense'){p.shield=true;p.shieldRounds=2;p.model.shield.visible=true;toast(`🛡️ ${p.name} دخل منطقة الدفاع: درع لجولة`);}else{p.attackBuff=1;p.ram=true;giveEnergy(p,1,'منطقة الهجوم: مهارتك القادمة مجانية');}updateHUD();}
 function placePickup(id,x,z){
   const m=new THREE.Group();
   const geo=new THREE.BoxGeometry(0.72,0.72,0.72);
@@ -1237,6 +1365,8 @@ function explode(at){
 // ---------- bots ----------
 function botTurn(p,skipSab){
   if(S.state!=='aim'||cur()!==p)return;
+  if(S.phase==='react'){setTimeout(()=>botTurn(p,skipSab),250);return;}
+  if(!skipSab)botDeclare(p);
   if(!skipSab){const r=botSabotage(p);if(r==='moved')return;if(r){setTimeout(()=>botAim(p),900);return;}}
   botAim(p);
 }
@@ -1247,20 +1377,32 @@ function botSabotage(p){
   const myD=dist(p);
   const threat=[...opp].sort((a,b)=>dist(a)-dist(b))[0];
   const act=(k,t,ex)=>{const a=Object.assign({t:'skill',k,target:t?t.id:null,rnd:Math.random()},ex||{});doAction(a);return S.state==='moving'?'moved':true;};
-  if(p.sk.freeze>0&&dist(threat)<myD&&dist(threat)<11&&Math.random()<0.5)return act('freeze',threat);
-  if(p.sk.shove>0&&dist(threat)<5.5&&Math.random()<0.55){const ux=threat.pos.x-H.hole.x,uz=threat.pos.z-H.hole.z;const L=Math.hypot(ux,uz)||1;return act('shove',threat,{dx:ux/L,dz:uz/L});}
-  if(p.sk.shield>0&&myD<Math.min(...opp.map(dist))&&Math.random()<0.4)return act('shield');
-  if(p.sk.mine>0&&Math.random()<0.35){const ux=H.hole.x-threat.pos.x,uz=H.hole.z-threat.pos.z;const L=Math.hypot(ux,uz)||1;return act('mine',null,{x:threat.pos.x+ux/L*2.5,z:threat.pos.z+uz/L*2.5});}
-  if(p.sk.swap>0&&dist(threat)<myD*0.45&&Math.random()<0.7)return act('swap',threat);
-  if(p.sk.rope>0&&opp.length>=2&&Math.random()<0.5){const o2=opp.filter(o=>o!==threat).sort((u,v)=>Math.hypot(u.pos.x-threat.pos.x,u.pos.z-threat.pos.z)-Math.hypot(v.pos.x-threat.pos.x,v.pos.z-threat.pos.z))[0];if(o2&&Math.hypot(o2.pos.x-threat.pos.x,o2.pos.z-threat.pos.z)<14)return act('rope',threat,{target2:o2.id});}
-  {const dt0=Math.hypot(threat.pos.x-p.pos.x,threat.pos.z-p.pos.z);if(p.sk.bomb>0&&dt0<BOMB_R+2&&dt0>5.5&&Math.random()<0.6)return act('bomb',null,{x:threat.pos.x,z:threat.pos.z});}
-  if(p.sk.oil>0&&dist(threat)<myD&&Math.random()<0.4)return act('oil',null,{x:threat.pos.x,z:threat.pos.z});
-  if(p.sk.blind>0&&dist(threat)<myD&&Math.random()<0.5)return act('blind',threat);
-  if(p.sk.curse>0&&dist(threat)<myD&&Math.random()<0.5)return act('curse',threat);
-  if(p.sk.steal>0&&Object.keys(SKILL_MAX).some(k=>threat.sk[k]>0)&&Math.random()<0.5)return act('steal',threat);
-  if(p.sk.quake>0&&opp.filter(o=>dist(o)<12).length>=2&&Math.random()<0.6)return act('quake');
+  const {base}=botProf(p);const want=k=>(F().draft?canAfford(p,k):p.sk[k]>0)&&Math.random()<Math.min(0.95,(base.fav.includes(k)?0.8:0.45)*base.sab*(0.5+botRate(p,'skill',k,0.6)));
+  if(want('freeze')&&dist(threat)<myD&&dist(threat)<11)return act('freeze',threat);
+  if(want('shove')&&dist(threat)<5.5){const ux=threat.pos.x-H.hole.x,uz=threat.pos.z-H.hole.z;const L=Math.hypot(ux,uz)||1;return act('shove',threat,{dx:ux/L,dz:uz/L});}
+  if((F().draft?canAfford(p,'shield'):p.sk.shield>0)&&myD<Math.min(...opp.map(dist))&&Math.random()<0.4+(base.style==='smart'?0.35:0))return act('shield');
+  if(want('mine')){const ux=H.hole.x-threat.pos.x,uz=H.hole.z-threat.pos.z;const L=Math.hypot(ux,uz)||1;return act('mine',null,{x:threat.pos.x+ux/L*2.5,z:threat.pos.z+uz/L*2.5});}
+  if(want('swap')&&dist(threat)<myD*0.45)return act('swap',threat);
+  if(want('rope')&&opp.length>=2){const o2=opp.filter(o=>o!==threat).sort((u,v)=>Math.hypot(u.pos.x-threat.pos.x,u.pos.z-threat.pos.z)-Math.hypot(v.pos.x-threat.pos.x,v.pos.z-threat.pos.z))[0];if(o2&&Math.hypot(o2.pos.x-threat.pos.x,o2.pos.z-threat.pos.z)<14)return act('rope',threat,{target2:o2.id});}
+  {const dt0=Math.hypot(threat.pos.x-p.pos.x,threat.pos.z-p.pos.z);if(want('bomb')&&dt0<BOMB_R+2&&dt0>5.5)return act('bomb',null,{x:threat.pos.x,z:threat.pos.z});}
+  if(want('oil')&&dist(threat)<myD)return act('oil',null,{x:threat.pos.x,z:threat.pos.z});
+  if(want('blind')&&dist(threat)<myD)return act('blind',threat);
+  if(want('curse')&&dist(threat)<myD)return act('curse',threat);
+  if(want('steal')&&Object.keys(SKILL_MAX).some(k=>threat.sk[k]>0))return act('steal',threat);
+  if(want('quake')&&opp.filter(o=>dist(o)<12).length>=2)return act('quake');
   return false;
 }
+function botSide(o,p){if(S.state!=='aim'||cur()!==p||o.holed||o.spectator)return;const {base}=botProf(o);const H=S.H;const dP=Math.hypot(p.pos.x-H.hole.x,p.pos.z-H.hole.z);
+  if(F().pred&&!(S.preds||[]).some(x=>x.pid===o.id)&&Math.random()<base.pred){const pri={hole:dP<9?0.45:0.08,water:predAllowed('water')?0.2:0,bank:0.3,bump:predAllowed('bump')?0.2:0,ability:predAllowed('ability')?(p.kind==='bot'?0.35:0.22):0,zone:predAllowed('zone')?0.12:0};let bestK=null,bv=0;Object.keys(pri).forEach(k=>{if(!pri[k]||!predAllowed(k))return;const v=pri[k]*(0.5+botRate(o,'pred',k,0.5))*(0.75+Math.random()*0.5);if(v>bv){bv=v;bestK=k;}});if(bestK)doSide({t:'predict',k:bestK,from:o.id});}
+  if(F().react&&S.phase==='react'&&!o.reacted&&Math.random()<base.react*0.7){const myD=Math.hypot(o.pos.x-H.hole.x,o.pos.z-H.hole.z);const threatHas=F().draft?(p.energy>=2):Object.keys(SKILL_MAX).some(k=>p.sk[k]>0&&!['power','jump','magnet','ghost','warp','giant','shield'].includes(k));let k=null,ex={};
+    if(threatHas&&myD<dP&&o.energy>=1)k=Math.random()<0.5?'shield':'anchor';
+    else if(base.style==='sly'&&o.energy>=2&&Math.random()<0.6){const ux=H.hole.x-p.pos.x,uz=H.hole.z-p.pos.z;const L=Math.hypot(ux,uz)||1;const tx=p.pos.x+ux/L*5,tz=p.pos.z+uz/L*5;if(dryLand(H,tx,tz,1.0)&&Math.hypot(tx-H.hole.x,tz-H.hole.z)>3.5){k='trap';ex={x:tx,z:tz};}}
+    else if(o.energy>=2&&Math.random()<0.5){const ux=H.hole.x-p.pos.x,uz=H.hole.z-p.pos.z;const L=Math.hypot(ux,uz)||1;k='wind';ex={dx:-uz/L*(Math.random()<0.5?1:-1),dz:ux/L*(Math.random()<0.5?1:-1)};}
+    else if(threatHas&&o.energy>=2&&Math.random()<0.4)k='reverse';
+    if(k)doSide(Object.assign({t:'react',k,from:o.id},ex));}}
+function botDeclare(p){const {base}=botProf(p);if(!S.H)return;const d=Math.hypot(p.pos.x-S.H.hole.x,p.pos.z-S.H.hole.z);
+  if(S.showdownElig&&S.showdownElig.includes(p.id)&&!S.showdown&&p.strokes===0&&Math.random()<0.35+base.risk*0.5)declareShowdown(p);
+  if(F().chal&&!S.chal&&Math.random()<base.risk*0.55){let k=null;if(d<10&&Math.random()<0.5+botRate(p,'chal','precision',0.5)*0.4)k='precision';else if(d>=30&&base.risk>0.6&&Math.random()<0.4)k='long';else if(Math.random()<0.3)k='noability';if(k)declareChal(p,k);}}
 function botAim(p){
   if(S.state!=='aim'||cur()!==p)return;
   const H=S.H;
@@ -1268,12 +1410,12 @@ function botAim(p){
   const myD=Math.hypot(p.pos.x-H.hole.x,p.pos.z-H.hole.z);
   const boost=p.sk.power>0&&myD>44;const magnet=p.sk.magnet>0&&myD<14;
   let best={score:1e9};
-  const evalShot=(ang,pw,jump,ghost)=>{const r=simShot(H,p,Math.cos(ang),Math.sin(ang),pw,7,jump,boost,false,S.pickups,magnet,ghost);const sc=r.holed?-1000+pw:r.dist+(r.wet?40:0)+(jump?1.2:0)+(ghost?1.5:0)-3*r.picks;if(sc<best.score)best={score:sc,ang,pw,jump,ghost};};
+  const boxW=(botProf(p).base.box||3);const evalShot=(ang,pw,jump,ghost)=>{const r=simShot(H,p,Math.cos(ang),Math.sin(ang),pw,7,jump,boost,false,S.pickups,magnet,ghost);const sc=r.holed?-1000+pw:r.dist+(r.wet?40:0)+(jump?1.2:0)+(ghost?1.5:0)-boxW*r.picks;if(sc<best.score)best={score:sc,ang,pw,jump,ghost};};
   const tryAll=(jump,ghost)=>{for(let ai=-6;ai<=6;ai++){const ang=base+ai*Math.PI/12;for(let pw=0.15;pw<=1.001;pw+=0.14)evalShot(ang,pw,jump,ghost);}
     const b0=best;if(b0.ang!=null){const a0=b0.ang,p0=b0.pw;for(let ai=-2;ai<=2;ai++)for(let pi=-2;pi<=2;pi++){if(!ai&&!pi)continue;evalShot(a0+ai*Math.PI/48,clamp(p0+pi*0.05,0.1,1),jump,ghost);}}};
   tryAll(false,false);
   if(p.sk.ghost>0&&best.score>3)tryAll(false,true);
-  const ang=best.ang+rnd(-0.07,0.07),pw=clamp(best.pw*rnd(0.88,1.12),0.1,1);
+  const bp=botProf(p).base;const ex=botExp(p);const an=bp.aim*(1-0.55*ex),pn=bp.pwr*(1-0.55*ex);const ang=best.ang+rnd(-an,an),pw=clamp(best.pw*rnd(1-pn,1+pn),0.1,1);
   const ramOn=p.sk.jump>0&&S.players.some(o=>o!==p&&o.spawned&&!o.holed&&Math.hypot(o.pos.x-p.pos.x,o.pos.z-p.pos.z)<10);S.botPull={p,dx:Math.cos(ang),dz:Math.sin(ang),pw,t:0,jump:ramOn,boost,magnet,ghost:!!best.ghost};
 }
 
@@ -1288,13 +1430,21 @@ function updateHUD(){
   $('#strokeInfo').textContent=p?`ضربات: ${p.strokes}`:'';
   {const pings=S.mode==='online'?S.players.filter(q=>q.kind!=='bot'&&q.ping!=null).map(q=>q.ping|0):[];S.worstPing=pings.length?Math.max(...pings):null;}
   {const bumped=new Set();S.players.forEach(q=>{if(q.ptsShown!=null&&q.pts>q.ptsShown)bumped.add(q.id);q.ptsShown=q.pts;});S.bumpedIds=bumped;}
-  $('#players').innerHTML=(S.worstPing!=null?`<div class="pl" style="justify-content:center;color:${S.worstPing>250?'#c0392b':'var(--muted)'}">📶 ${S.worstPing}ms${S.worstPing>250?' ⚠️ لاغ':''}</div>`:'')+S.players.map(q=>`<div class="pl ${q===p?'cur':''} ${q.holed?'holed':''} ${S.bumpedIds&&S.bumpedIds.has(q.id)?'bump':''}"><span class="dot" style="background:${hex(q.color)}"></span>${q.name} <b>${q.pts}★</b> <span style="color:var(--muted)">${q.strokes}</span>${q.holed?' ⛳':''}${q.spectator?' 👁️':''}${q.kind==='remote'&&q.ping!=null?` <span style="color:var(--muted)">${q.ping}ms</span>`:''}${q.frozen?' ❄️':''}${q.shield?' 🛡️':''}</div>`).join('');
+  $('#players').innerHTML=(S.worstPing!=null?`<div class="pl" style="justify-content:center;color:${S.worstPing>250?'#c0392b':'var(--muted)'}">📶 ${S.worstPing}ms${S.worstPing>250?' ⚠️ لاغ':''}</div>`:'')+S.players.map(q=>`<div class="pl ${q===p?'cur':''} ${q.holed?'holed':''} ${S.bumpedIds&&S.bumpedIds.has(q.id)?'bump':''}"><span class="dot" style="background:${hex(q.color)}"></span>${q.name} <b>${q.pts}★</b>${F().energy?`<span class="en">⚡${q.energy|0}</span>`:''} <span style="color:var(--muted)">${q.strokes}</span>${q.holed?' ⛳':''}${q.spectator?' 👁️':''}${q.kind==='remote'&&q.ping!=null?` <span style="color:var(--muted)">${q.ping}ms</span>`:''}${q.frozen?' ❄️':''}${q.shield?' 🛡️':''}</div>`).join('');
   {const owner=(p&&p.kind==='human')?p:(S.mode==='local'?null:S.players.find(q=>q.kind==='human'));
-   const keys=owner?Object.keys(SKILLS).filter(k=>owner.sk[k]>0&&!(k==='rope'&&S.players.filter(o=>o!==owner&&o.spawned&&!o.holed).length<2)):[];
-   $('#skills').innerHTML=keys.length?keys.map(k=>`<button type="button" class="sk ${S.armed[k]?'armed':''}" data-k="${k}" ${!mine?'disabled':''}><span class="ic">${SKILLS[k].icon}</span>${SKILLS[k].name}<span class="n">${owner.sk[k]}</span></button>`).join(''):(owner?'<div class="nosk">لا مهارات بعد · اصطدم بالصناديق ❓ لتكسبها</div>':'');}
-  $('#hint').textContent=S.state==='aim'?(mine?(S.overview?'أغلق النظرة العلوية ثم اسحب للتسديد':'اضغط على الكرة واسحب للخلف للتسديد · اسحب الشاشة لتدوير الكاميرا'):`${p?p.name:''} ${p&&p.kind==='remote'?((!S.remoteAck&&S.remoteWait>8)?'جهازه لا يستجيب…':'يسدد الآن…'):'يستعد للتسديد…'}`):'';
+   const ropeOk=k=>!(k==='rope'&&S.players.filter(o=>o!==owner&&o.spawned&&!o.holed).length<2);const keys=owner?((F().draft&&owner.loadout)?owner.loadout.filter(ropeOk):Object.keys(SKILLS).filter(k=>owner.sk[k]>0&&ropeOk(k))):[];
+   $('#skills').innerHTML=keys.length?keys.map(k=>`<button type="button" class="sk ${S.armed[k]?'armed':''}" data-k="${k}" ${!mine?'disabled':''}><span class="ic">${SKILLS[k].icon}</span>${SKILLS[k].name}<span class="n">${F().draft?(canAfford(owner,k)?skillCost(k)+'⚡':'⏳'):owner.sk[k]}</span></button>`).join(''):(owner?`<div class="nosk">${F().boxEnergy?'الصناديق ❓ تعطي طاقة ⚡':'لا مهارات بعد · اصطدم بالصناديق ❓ لتكسبها'}</div>`:'');}
+  $('#hint').textContent=S.state==='aim'?(S.phase==='react'&&mine?'⏳ نافذة الرد: الخصوم يجهّزون ردّهم، ثم تسدد':mine?(S.overview?'أغلق النظرة العلوية ثم اسحب للتسديد':'اضغط على الكرة واسحب للخلف للتسديد · اسحب الشاشة لتدوير الكاميرا'):`${p?p.name:''} ${p&&p.kind==='remote'?((!S.remoteAck&&S.remoteWait>8)?'جهازه لا يستجيب…':'يسدد الآن…'):'يستعد للتسديد…'}`):'';
   $('#tut').classList.toggle('on',mine&&!S.overview&&S.shots===0&&!S.drag);
   $('#msgBtn').classList.toggle('hidden',!NET.room);
+  {const me=myPlayer();const sb=$('#sideBar');const waiting=me&&p&&p!==me&&S.state==='aim'&&!me.holed&&!me.spectator&&(F().pred||F().react);
+   if(waiting){const myPred=(S.preds||[]).find(x=>x.pid===me.id);let h='';
+    if(F().pred){h+=`<div class="sbl">🔮 توقّع ضربة ${p.name}:</div><div class="sbrow">`+Object.keys(DUEL.preds).filter(k=>predAllowed(k)).map(k=>`<button type="button" class="sbb ${myPred&&myPred.k===k?'on':''}" data-pred="${k}" ${myPred?'disabled':''}>${DUEL.preds[k].icon} ${DUEL.preds[k].name}</button>`).join('')+'</div>';}
+    if(F().react&&S.phase==='react'){h+=`<div class="sbl">⚡ ردّك (${me.energy|0}⚡) <span id="reactPill">⏳ ${Math.max(0,Math.ceil(S.reactT||0))}</span></div><div class="sbrow">`+Object.keys(DUEL.react).map(k=>{const Rx=DUEL.react[k];const dis=me.reacted||me.energy<Rx.cost;return `<button type="button" class="sbb" data-react="${k}" title="${Rx.desc}" ${dis?'disabled':''}>${Rx.icon} ${Rx.name} <small>${Rx.cost}⚡</small></button>`;}).join('')+'</div>';}
+    sb.innerHTML=h;sb.classList.toggle('hidden',!h);}
+   else sb.classList.add('hidden');
+   $('#chalBtn').classList.toggle('hidden',!(mine&&F().chal&&!S.chal&&S.phase==='aim'&&!S.drag));
+   $('#showBtn').classList.toggle('hidden',!(mine&&S.showdownElig&&S.showdownElig.includes(p.id)&&!S.showdown&&p.strokes===0&&S.phase==='aim'));}
   if(!(p&&p.kind==='remote'&&S.state==='aim'))$('#skipBtn').classList.add('hidden');
 }
 $('#skills').addEventListener('click',e=>{
@@ -1309,6 +1459,10 @@ const pickRing=new THREE.Mesh(new THREE.RingGeometry(1,1.06,96),new THREE.MeshBa
 function startGroundPick(k,tid){const me=cur();if(!me)return;const rad=k==='mine'?MINE_R:k==='bomb'?BOMB_R:k==='oil'?OIL_R:3;const c=k==='shove'?S.players[tid]:me;if(!c)return;S.gp={k,tid,rad,me};pickRing.visible=true;pickRing.scale.set(rad,rad,1);pickRing.position.set(c.pos.x,c.pos.y+0.06,c.pos.z);$('#gpBar').classList.remove('hidden');$('#gpTxt').textContent=k==='shove'?`👊 اضغط على الأرض في الاتجاه الذي تريد دفع ${c.name} نحوه`:`${SKILLS[k].icon} اضغط على الأرض داخل الدائرة لاختيار المكان`;}
 function endGroundPick(){S.gp=null;pickRing.visible=false;$('#gpBar').classList.add('hidden');}
 $('#gpCancel').addEventListener('click',endGroundPick);
+function botDraft(p){const {base}=botProf(p);const keys=Object.keys(SKILLS);const score=k=>(base.fav.includes(k)?2:1)*(0.6+botRate(p,'skill',k,0.5))*(0.7+Math.random()*0.6);const pick=[...keys].sort((a,b)=>score(b)-score(a)).slice(0,DUEL.loadout);doSide({t:'draft',keys:pick,from:p.id});}
+function openDraft(){S.draftQueue=S.players.filter(p=>p.kind==='human');S.players.forEach(p=>{if(p.kind==='bot'&&botsRunHere())botDraft(p);});clearTimeout(S.draftTimer);S.draftTimer=setTimeout(()=>{S.players.forEach(p=>{if(!p.loadout&&(p.kind!=='bot'||botsRunHere()))botDraft(p);});$('#draft').classList.add('hidden');checkDraftDone();},DUEL.draftTimeout*1000);if(S.autoplay){S.players.forEach(p=>{if(!p.loadout)botDraft(p);});checkDraftDone();return;}nextDraft();}
+function nextDraft(){const p=S.draftQueue.shift();if(!p){$('#draft').classList.add('hidden');checkDraftDone();return;}const sel=new Set();$('#draftWho').textContent=S.mode==='local'?`(${p.name})`:'';const grid=$('#draftGrid');grid.innerHTML=Object.keys(SKILLS).map(k=>`<button type="button" class="mchip" data-k="${k}"><span class="ic" style="font-size:22px;display:block">${SKILLS[k].icon}</span>${SKILLS[k].name}<small>${DUEL.cat[k]||''} · ${skillCost(k)}⚡</small></button>`).join('');const info=$('#draftInfo'),ok=$('#draftOk');const refresh=()=>{[...grid.children].forEach(b=>b.classList.toggle('on',sel.has(b.dataset.k)));info.textContent=`اخترت ${sel.size}/${DUEL.loadout}`;ok.disabled=sel.size!==DUEL.loadout;};grid.onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.k;if(sel.has(k))sel.delete(k);else if(sel.size<DUEL.loadout)sel.add(k);else toast('اختر 3 فقط، ألغِ واحدة أولاً');refresh();};ok.onclick=()=>{if(sel.size!==DUEL.loadout)return;$('#draft').classList.add('hidden');doSide({t:'draft',keys:[...sel],from:p.id});nextDraft();};refresh();$('#draft').classList.remove('hidden');}
+function checkDraftDone(){if(S.draftStarted||!F().draft||S.H)return;const pending=S.players.filter(p=>!p.spectator&&!p.loadout);if(pending.length){const el=document.getElementById('lobbyMsg');return;}S.draftStarted=true;clearTimeout(S.draftTimer);$('#draft').classList.add('hidden');loadHole(0);}
 function openPicker2(k,tid){const me=cur();const opp=S.players.filter(o=>o!==me&&!o.holed&&o.spawned&&o.id!==tid);if(!opp.length){toast('لا يوجد لاعب ثانٍ');return;}$('#pickerTitle').textContent=`${SKILLS[k].icon} ${SKILLS[k].name}: اختر اللاعب الثاني`;$('#pickerList').innerHTML=opp.map(o=>`<button type="button" class="btn" data-id="${o.id}">${o.name}${o.shield?' 🛡️':''}</button>`).join('');$('#pickerList').onclick=e=>{const b=e.target.closest('button');if(!b)return;$('#picker').classList.add('hidden');if(S.state!=='aim'||cur()!==me)return;doAction({t:'skill',k,target:tid,target2:+b.dataset.id,rnd:Math.random()});};$('#picker').classList.remove('hidden');}
 function openPicker(k){
   const me=cur();const opp=S.players.filter(o=>o!==me&&!o.holed&&o.spawned);
@@ -1319,16 +1473,21 @@ function openPicker(k){
   $('#picker').classList.remove('hidden');
 }
 $('#pickerCancel').addEventListener('click',()=>$('#picker').classList.add('hidden'));
+$('#sideBar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;if(b.dataset.pred){doSide({t:'predict',k:b.dataset.pred});return;}const k=b.dataset.react;if(!k)return;if(k==='wind'||k==='trap'){startSidePick(k);return;}doSide({t:'react',k});});
+function startSidePick(k){const me=myPlayer(),c=cur();if(!me||!c)return;S.gp={k,side:true,me,rad:k==='wind'?4:40};pickRing.visible=true;const rad=S.gp.rad;pickRing.scale.set(rad,rad,1);pickRing.position.set(c.pos.x,c.pos.y+0.06,c.pos.z);$('#gpBar').classList.remove('hidden');$('#gpTxt').textContent=k==='wind'?`💨 اضغط على الأرض في الاتجاه الذي تريد أن تهبّ الريح نحوه (من كرة ${c.name})`:'🪤 اضغط على الأرض لوضع فخ الرمل (بعيداً عن الكرات والحفرة)';}
+$('#chalBtn').addEventListener('click',()=>{const p=cur();if(!p||!isLocalHuman(p))return;const d=Math.hypot(p.pos.x-S.H.hole.x,p.pos.z-S.H.hole.z);$('#chalList').innerHTML=Object.keys(DUEL.chal).filter(k=>k!=='long'||d>=30).map(k=>`<button type="button" class="btn" data-k="${k}">${DUEL.chal[k].icon} ${DUEL.chal[k].name}<small>${DUEL.chal[k].desc}</small></button>`).join('');$('#chalList').onclick=e=>{const b=e.target.closest('button');if(!b)return;$('#chalBox').classList.add('hidden');if(S.state!=='aim'||cur()!==p)return;doAction({t:'chal',k:b.dataset.k});};$('#chalBox').classList.remove('hidden');});
+$('#chalCancel').addEventListener('click',()=>$('#chalBox').classList.add('hidden'));
+$('#showBtn').addEventListener('click',()=>{const p=cur();if(!p||!isLocalHuman(p))return;doAction({t:'showdown'});});
 try{S.camReduce=localStorage.getItem('golf-cam')==='1'||(localStorage.getItem('golf-cam')==null&&window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);}catch(e){S.camReduce=false;}
 $('#camBtn').textContent=S.camReduce?'🎥 هادئة':'🎥';$('#camBtn').addEventListener('click',()=>{S.camReduce=!S.camReduce;try{localStorage.setItem('golf-cam',S.camReduce?'1':'0');}catch(e){}$('#camBtn').textContent=S.camReduce?'🎥 هادئة':'🎥';toast(S.camReduce?'حركة الكاميرا مخففة':'حركة الكاميرا كاملة');});
 $('#qBtn').addEventListener('click',()=>{applyQuality(Q.level==='high'?'medium':Q.level==='medium'?'low':'high');Q.cool=5;});
 $('#sndBtn').textContent=SFX.isMuted()?'🔇':'🔊';$('#sndBtn').addEventListener('click',()=>{$('#sndBtn').textContent=SFX.toggle()?'🔇':'🔊';});
 $('#ovBtn').addEventListener('click',()=>{S.overview=!S.overview;$('#ovBtn').textContent=S.overview?'🎯':'🗺️';updateHUD();});
 function seg(id,cb){$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;cb(+b.dataset.n);[...$(id).children].forEach(x=>x.classList.toggle('on',x===b));});}
-seg('#botSeg',n=>botCount=n);seg('#humSeg',n=>humCount=n);seg('#botSeg2',n=>botCount2=n);
+seg('#botSeg',n=>botCount=n);seg('#humSeg',n=>humCount=n);seg('#botSeg2',n=>botCount2=n);seg('#botSegNet',n=>botCountNet=n);
 function mySkin(){try{const v=localStorage.getItem('golf-skin');if(SKINS.includes(v))return v;}catch(e){}return 'classic';}
 function renderSkins(){const row=$('#skinRow');if(row.children.length)return;const cur=mySkin();SKINS.forEach(sk=>{const c=document.createElement('canvas');c.width=c.height=92;const g=c.getContext('2d');const src=ballCanvas(0x2f80ed,sk);g.save();g.beginPath();g.arc(46,46,44,0,Math.PI*2);g.clip();g.drawImage(src,140,20,230,230,0,0,92,92);g.restore();c.title=sk;c.dataset.skin=sk;if(sk===cur)c.classList.add('on');c.addEventListener('click',()=>{try{localStorage.setItem('golf-skin',sk);}catch(e){}[...row.children].forEach(x=>x.classList.toggle('on',x===c));if(NET.room){NET.room.presence({skin:sk}).catch(()=>{});}});row.appendChild(c);});}
-function renderRules(){renderSkins();const r=S.rules;[...$('#diffSeg').children].forEach(b=>b.classList.toggle('on',b.dataset.v===r.diff));[...$('#ttSeg').children].forEach(b=>b.classList.toggle('on',+b.dataset.v===r.turnTime));[...$('#evSeg').children].forEach(b=>b.classList.toggle('on',(b.dataset.v==='1')===(r.events!==false)));
+function renderRules(){renderSkins();const r=S.rules;[...$('#diffSeg').children].forEach(b=>b.classList.toggle('on',b.dataset.v===r.diff));[...$('#ttSeg').children].forEach(b=>b.classList.toggle('on',+b.dataset.v===r.turnTime));[...$('#evSeg').children].forEach(b=>b.classList.toggle('on',(b.dataset.v==='1')===(r.events!==false)));[...$('#modeSeg').children].forEach(b=>b.classList.toggle('on',b.dataset.v===(r.mode||'classic')));$('#modeHint').textContent=(r.mode||'classic')==='classic'?'اللعبة المعتادة: مهارات من الصناديق، بلا طاقة.':r.mode==='tactical'?'🧠 اختر 3 مهارات قبل المباراة، طاقة ⚡ للمهارات والردود، توقعات على ضربات الخصم، نافذة رد قبل كل ضربة، مناطق استراتيجية، تحديات اختيارية، جدران تتبدل.':'🌀 فوضى سريعة: كل المهارات من الصناديق + طاقة تتجدد كل دور، توقعات وردود، جدران تنفتح وتنغلق كل جولة.';
   $('#mapGrid').innerHTML=HOLES.map((h,i)=>{const k=r.maps.indexOf(i);return `<button type="button" class="mchip ${k>=0?'on':''}" data-i="${i}">${THEMES[h.theme||'classic'].icon} ${h.name}<small>${THEMES[h.theme||'classic'].label} · بار ${h.par}</small>${k>=0?`<span class="num">${k+1}</span>`:''}</button>`;}).join('');
   $('#diffHint').textContent=r.diff==='normal'?'كل شيء ظاهر.':r.diff==='hard'?'🫣 بعض الفخاخ مخفية، وتبقى ظاهرة بعد أول تفعيل.':'😈 فخاخ وجدران مخفية تنكشف وتبقى ظاهرة عند لمسها، والحفرة مخفية حتى تقترب منها كرة.';}
 function moveRules(slot){const box=$('#rulesBox');const el=$(slot);if(el&&box.parentNode!==el)el.appendChild(box);box.classList.toggle('ro',slot==='#rulesSlotLobby'&&!isHostNow());renderRules();}
@@ -1336,10 +1495,11 @@ function isHostNow(){if(!NET.room)return true;const l=seats();return !!(l[0]&&l[
 function broadcastRules(){if(NET.room&&isHostNow()){NET.room.emit('rules',S.rules).catch(()=>{});}}
 $('#diffSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.rules.diff=b.dataset.v;renderRules();broadcastRules();});
 $('#ttSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.rules.turnTime=+b.dataset.v;renderRules();broadcastRules();});
+$('#modeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.rules.mode=b.dataset.v;renderRules();broadcastRules();});
 $('#evSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.rules.events=b.dataset.v==='1';renderRules();broadcastRules();});
 $('#mapGrid').addEventListener('click',e=>{const b=e.target.closest('.mchip');if(!b)return;const i=+b.dataset.i;const k=S.rules.maps.indexOf(i);if(k>=0)S.rules.maps.splice(k,1);else S.rules.maps.push(i);renderRules();broadcastRules();});
 moveRules('#rulesSlotSolo');
-{const q=new URLSearchParams(location.search);if(q.get('auto')==='1'){const d=q.get('diff');if(['normal','hard','insane'].includes(d))S.rules.diff=d;const m=(q.get('maps')||'').split(',').map(x=>+x).filter(x=>x>=0&&x<HOLES.length);if(m.length)S.rules.maps=m;if(q.get('ev')==='0')S.rules.events=false;if(q.get('view')==='hole')S.dbgHole=true;if(q.get('view')==='iso')S.dbgIso=true;S.autoplay=true;window.__errs=[];window.addEventListener('error',e=>window.__errs.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__errs.push('rej:'+String(e.reason&&e.reason.message||e.reason)));setTimeout(()=>{S.mode='solo';S.seed=7;makePlayers([{name:'أنت',kind:'bot',skin:mySkin()},...BOT_NAMES.slice(0,3).map(n=>({name:n,kind:'bot'}))]);beginGame();},800);}}
+{const q=new URLSearchParams(location.search);if(q.get('auto')==='1'){const d=q.get('diff');if(['normal','hard','insane'].includes(d))S.rules.diff=d;const m=(q.get('maps')||'').split(',').map(x=>+x).filter(x=>x>=0&&x<HOLES.length);if(m.length)S.rules.maps=m;if(q.get('ev')==='0')S.rules.events=false;if(['classic','tactical','chaos'].includes(q.get('mode')))S.rules.mode=q.get('mode');if(q.get('view')==='hole')S.dbgHole=true;if(q.get('view')==='iso')S.dbgIso=true;S.autoplay=true;window.__errs=[];window.addEventListener('error',e=>window.__errs.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__errs.push('rej:'+String(e.reason&&e.reason.message||e.reason)));setTimeout(()=>{S.mode='solo';S.seed=7;makePlayers([{name:'أنت',kind:'bot',skin:mySkin()},...BOT_NAMES.slice(0,3).map(n=>({name:n,kind:'bot'}))]);beginGame();},800);}}
 $('#modeTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;[...$('#modeTabs').children].forEach(x=>x.classList.toggle('on',x===b));const m=b.dataset.m;$('#paneSolo').classList.toggle('hidden',m!=='solo');$('#paneLocal').classList.toggle('hidden',m!=='local');$('#paneOnline').classList.toggle('hidden',m!=='online');if(m==='solo')moveRules('#rulesSlotSolo');if(m==='local')moveRules('#rulesSlotLocal');});
 $('#startSolo').addEventListener('click',startSolo);
 $('#startLocal').addEventListener('click',startLocal);
@@ -1380,7 +1540,7 @@ function makeP2PRoom(code,host,pw){
       // returning player: re-seat them into the running game
       const seated=tok&&S.mode==='online'&&S.players.find(q=>q.token===tok);
       if(seated&&seated.peer!==c.peer){const old=seated.peer;seated.peer=c.peer;seated.spectator=false;seated.missed=0;const i=peersList.findIndex(q=>q.peer===old);if(i>=0)peersList[i].peer=c.peer;
-        const start={players:S.players.map(q=>({peer:q.peer,name:q.name,skin:q.skinId||'classic'})),rules:S.rules,seed:S.seed,resume:true};
+        const start={players:S.players.map(q=>({peer:q.peer,name:q.name,skin:q.skinId||'classic',bot:q.kind==='bot'?1:0})),rules:S.rules,seed:S.seed,resume:true};
         try{c.send({t:'resume',you:c.peer,start,snap:makeSnap(),hole:S.hole});}catch(e){}
         hostBroadcast({t:'reseat',id:seated.id,peer:c.peer},c);dispatch('reseat',{id:seated.id,peer:c.peer},c.peer);toast(`↩️ ${seated.name} عاد إلى المباراة`);}
       const ex=peersList.find(q=>q.peer===c.peer);if(ex){ex.name=nm;ex.skin=d.skin;}else peersList.push({peer:c.peer,name:nm,at:Date.now(),skin:d.skin});
@@ -1443,6 +1603,7 @@ async function enterRoom(code,isHost){
     NET.unsub.push(r.on('act',m=>{if(m.sameTab)return;onNetAct(m.data);}));
     NET.unsub.push(r.on('msg',m=>{if(m.sameTab)return;onNetMsg(m);}));
     NET.unsub.push(r.on('aim',m=>{if(m.sameTab)return;const dd=m.data||{};const q=S.players[dd.id|0];if(!q||q.peer!==m.peer||q.kind!=='remote')return;if(!dd.on){if(S.remoteAim&&S.remoteAim.p===q)S.remoteAim=null;return;}S.remoteAim={p:q,dx:+dd.dx||0,dz:+dd.dz||0,pw:clamp(+dd.pw||0,0,1),t:performance.now()};}));
+    NET.unsub.push(r.on('side',m=>{if(m.sameTab)return;const a=(m.data||{}).a;if(!a)return;const from=S.players[a.from|0];if(!from)return;if(from.kind==='bot'){const l=seats();if(!(l[0]&&l[0].peer===m.peer))return;}else if(from.peer!==m.peer)return;applySide(a,from);}));
     NET.unsub.push(r.on('emote',m=>{if(m.sameTab)return;const q=S.players.find(x=>x.peer===m.peer);const e=String((m.data||{}).e||'');if(q&&EMOTES.includes(e))showEmote(q,e);}));
     NET.unsub.push(r.on('resume',m=>{const d=m.data||{};if(!d.start)return;toast('↩️ عدتَ إلى المباراة');onNetStart(Object.assign({},d.start,{resume:true}));if(d.snap){setTimeout(()=>{applySnap(d.snap);},300);}}));
     NET.unsub.push(r.on('reseat',m=>{const d=m.data||{};const q=S.players[d.id|0];if(q&&d.peer){q.peer=String(d.peer);if(q.kind!=='human')q.kind='remote';q.spectator=false;q.missed=0;updateHUD();}}));
@@ -1465,7 +1626,7 @@ function renderLobby(){
   const host=list[0];const iAmHost=!!(host&&host.peer===NET.me);
   $('#lobbyList').innerHTML=list.map((p,i)=>`<div class="pl"><span class="dot" style="background:${hex(COLORS[i%COLORS.length])}"></span>${esc(String(p.presence.name))}${p.peer===NET.me?' (أنت)':''}${i===0?' 👑':''}${p.presence.ping!=null&&i>0?` <small style="color:var(--muted)">📶 ${p.presence.ping}ms</small>`:''}</div>`).join('')||'<div class="pl">…</div>';
   $('#lobbyMsg').textContent=iAmHost?(list.length<2?'بانتظار لاعب آخر على الأقل… يمكنك البدء وحدك للتجربة.':'الكل جاهز، اضغط ابدأ.'):'بانتظار صاحب الغرفة 👑 ليبدأ…';
-  $('#lobbyStart').disabled=!iAmHost||!NET.room.connected();$('#rulesBox').classList.toggle('ro',!iAmHost);
+  $('#netBots').classList.toggle('hidden',!iAmHost);$('#lobbyStart').disabled=!iAmHost||!NET.room.connected();$('#rulesBox').classList.toggle('ro',!iAmHost);
 }
 function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 $('#createRoom').addEventListener('click',()=>{const c=genCode();$('#roomCode').value=c;enterRoom(c,true);});
@@ -1477,7 +1638,7 @@ $('#roomList').addEventListener('click',e=>{const b=e.target.closest('button[dat
 $('#resumeBtn').addEventListener('click',()=>{const ss=loadSession();if(!ss){toast('لا توجد مباراة محفوظة');return;}$('#roomCode').value=ss.code;if(ss.pw&&!($('#roomPw').value||'').trim())$('#roomPw').value=ss.pw;if(ss.name&&!($('#nick').value||'').trim())$('#nick').value=ss.name;enterRoom(ss.code,false);});
 $('#joinRoom').addEventListener('click',()=>enterRoom($('#roomCode').value,false));
 $('#lobbyStart').addEventListener('click',()=>{
-  const data={players:seats().map(p=>({peer:p.peer,name:String(p.presence.name).slice(0,14),skin:SKINS.includes(p.presence.skin)?p.presence.skin:'classic'})),rules:S.rules,seed:Math.floor(Math.random()*1e6)};
+  const data={players:seats().map(p=>({peer:p.peer,name:String(p.presence.name).slice(0,14),skin:SKINS.includes(p.presence.skin)?p.presence.skin:'classic'})).concat(BOT_NAMES.slice(0,Math.min(botCountNet,Math.max(0,6-seats().length))).map(n=>({peer:null,name:n,skin:'classic',bot:1}))),rules:S.rules,seed:Math.floor(Math.random()*1e6)};
   if(!data.players.length)return;
   NET.room.emit('start',data).catch(()=>{});
   onNetStart(data);
@@ -1507,7 +1668,7 @@ function openMsgBox(){if(!NET.room)return;const list=S.players.length?S.players.
   $('#msgText').value='';$('#msgBox').classList.remove('hidden');}
 $('#msgBtn').addEventListener('click',openMsgBox);
 function openMenu(){$('#menuMsg').disabled=!NET.room;$('#menuMsgHint').textContent=NET.room?'أرسل رسالة لا يقرأها إلا المستلم':'متاحة في وضع الأونلاين';$('#menu').classList.remove('hidden');}
-function goHome(){clearTimeout(S.autoNext);applyTheme(THEMES.classic,null);['#menu','#board','#picker','#msgBox','#lobby','#inbox'].forEach(x=>$(x).classList.add('hidden'));
+function goHome(){clearTimeout(S.autoNext);applyTheme(THEMES.classic,null);['#menu','#board','#picker','#msgBox','#lobby','#inbox','#draft','#chalBox'].forEach(x=>$(x).classList.add('hidden'));clearTimeout(S.draftTimer);
   if(NET.room){NET.unsub.forEach(u=>{try{u();}catch(e){}});NET.unsub=[];try{NET.room.leave();}catch(e){}NET.room=null;clearInterval(DIR.reg);clearSession();$('#msgBtn').classList.add('hidden');}
   S.players.forEach(q=>{q.model.g.visible=false;q.label.visible=false;});S.ropes.forEach(r=>scene.remove(r.line));S.ropes=[];S.drag=null;S.botPull=null;S.state='start';S.cur=-1;S.mode='solo';
   $('#start').classList.remove('hidden');updateHUD();}
@@ -1522,18 +1683,18 @@ $('#menuExit').addEventListener('click',()=>{goHome();try{window.close();}catch(
 window.addEventListener('popstate',()=>{if(S.state!=='start'&&S.H){if($('#menu').classList.contains('hidden'))openMenu();else $('#menu').classList.add('hidden');history.pushState({g:1},'');}});
 $('#msgCancel').addEventListener('click',()=>$('#msgBox').classList.add('hidden'));
 $('#msgSend').addEventListener('click',()=>{const text=($('#msgText').value||'').trim().slice(0,100);if(!text||!msgSel||!NET.room)return;$('#msgBox').classList.add('hidden');NET.room.emit('msg',{to:msgSel,text}).then(()=>toast('✉️ أُرسلت الرسالة السرية إلى '+nameOfPeer(msgSel))).catch(()=>toast('تعذر إرسال الرسالة'));});
-function sanitizeRules(r){r=r&&typeof r==='object'?r:{};const diff=['normal','hard','insane'].includes(r.diff)?r.diff:'normal';const tt=[10,20,30].includes(+r.turnTime)?+r.turnTime:20;let maps=Array.isArray(r.maps)?r.maps.map(x=>x|0).filter((x,i,a)=>x>=0&&x<HOLES.length&&a.indexOf(x)===i):[];if(!maps.length)maps=HOLES.map((_,i)=>i);return {diff,turnTime:tt,maps,events:!(r.events===false||r.events===0||r.events==='0')};}
+function sanitizeRules(r){r=r&&typeof r==='object'?r:{};const diff=['normal','hard','insane'].includes(r.diff)?r.diff:'normal';const tt=[10,20,30].includes(+r.turnTime)?+r.turnTime:20;const mode=['classic','tactical','chaos'].includes(r.mode)?r.mode:'classic';let maps=Array.isArray(r.maps)?r.maps.map(x=>x|0).filter((x,i,a)=>x>=0&&x<HOLES.length&&a.indexOf(x)===i):[];if(!maps.length)maps=HOLES.map((_,i)=>i);return {diff,turnTime:tt,maps,mode,events:!(r.events===false||r.events===0||r.events==='0')};}
 function onNetStart(data){
   if(!data||!Array.isArray(data.players))return;
-  if(data.resume&&S.mode==='online'&&S.H&&S.players.length===data.players.length){S.players.forEach((q,i)=>{const d=data.players[i];if(d&&d.peer){q.peer=String(d.peer);q.kind=q.peer===NET.me?'human':'remote';}});updateHUD();return;}
+  if(data.resume&&S.mode==='online'&&S.H&&S.players.length===data.players.length){S.players.forEach((q,i)=>{const d=data.players[i];if(d&&d.peer&&!d.bot){q.peer=String(d.peer);q.kind=q.peer===NET.me?'human':'remote';}});updateHUD();return;}
   S.mode='online';NET.seq=0;NET.lastSeq=-1;S.rules=sanitizeRules(data.rules);S.seed=(data.seed|0)||1;renderRules();
-  makePlayers(data.players.slice(0,6).map(d=>({name:String(d.name||'لاعب').slice(0,14),kind:d.peer===NET.me?'human':'remote',peer:d.peer,skin:SKINS.includes(d.skin)?d.skin:'classic'})));
+  makePlayers(data.players.slice(0,6).map(d=>({name:String(d.name||'لاعب').slice(0,14),kind:d.bot?'bot':(d.peer===NET.me?'human':'remote'),peer:d.bot?null:d.peer,skin:SKINS.includes(d.skin)?d.skin:'classic'})));
   S.players.forEach((q,i)=>{const d=data.players[i];q.skinId=d&&d.skin||'classic';if(NET.room&&NET.room.isHost&&NET.room.isHost()&&q.peer)q.token=NET.room.tokenOf(q.peer)||(q.peer===NET.me?NET.token:'');});
   if(!S.players.some(p=>p.kind==='human'))toast('أنت تشاهد هذه الجولة؛ ستلعب في الجولة القادمة');
   beginGame();
 }
 function makeSnap(){
-  return {hole:S.hole,cur:S.cur,players:S.players.map(p=>({x:+p.pos.x.toFixed(3),z:+p.pos.z.toFixed(3),s:p.strokes,t:p.total,p:p.pts,sp:p.spawned?1:0,cu:p.cursed?1:0,bl:p.blind?1:0,spc:p.spectator?1:0,ms:p.missed|0,st:[p.st.bumps,p.st.treasure,p.st.aces,p.st.skills,p.st.sabotage],h:p.holed?1:0,f:p.frozen?1:0,sh:p.shield?1:0,sr:p.shieldRounds,fs:p.finalShot?1:0,sk:p.sk})),mines:S.mines.map(m=>({o:m.owner.id,x:+m.pos.x.toFixed(2),z:+m.pos.z.toFixed(2)})),lr:S.lastRound?1:0,fo:S.finishOrder.map(p=>p.id),pk:S.pickups.map(u=>u.id),rp:S.ropes.map(r=>({a:r.a.id,b:r.b.id,l:r.left})),ht:+((S.H&&S.H.t)||0).toFixed(3),tw:(S.H.traps||[]).filter(t=>t.temp!=null).map(t=>({x:+t.x.toFixed(2),z:+t.z.toFixed(2),o:t.owner,temp:t.temp,ty:t.type})),tf:S.treasureFound?1:0,hh:S.holeHidden?1:0,bk:(S.H.blocks||[]).map(b=>b.dead?1:0),rv:S.H.walls.map(w=>w.revealed?1:0),rt:(S.H.traps||[]).map(t=>t.revealed?1:0)};
+  return {hole:S.hole,cur:S.cur,players:S.players.map(p=>({x:+p.pos.x.toFixed(3),z:+p.pos.z.toFixed(3),s:p.strokes,t:p.total,p:p.pts,sp:p.spawned?1:0,cu:p.cursed?1:0,bl:p.blind?1:0,spc:p.spectator?1:0,ms:p.missed|0,st:[p.st.bumps,p.st.treasure,p.st.aces,p.st.skills,p.st.sabotage],h:p.holed?1:0,f:p.frozen?1:0,sh:p.shield?1:0,sr:p.shieldRounds,fs:p.finalShot?1:0,sk:p.sk,en:p.energy|0,an:p.anchor|0,rv2:p.reverse|0,ab:p.attackBuff|0,tk:p.turnsTaken|0,lo:p.loadout||null,zu:Object.keys(p.zonesUsed||{})})),pr:S.preds||[],gw:(S.H&&S.H.gwindTemp)||null,ch:S.chal||null,wo:S.H.walls.map(w=>w.open?1:0),rd:S.round|0,tn:S.turnNo|0,sd:S.showdown||null,se:S.showdownElig||null,tb:S.tiebreakUsed?1:0,mines:S.mines.map(m=>({o:m.owner.id,x:+m.pos.x.toFixed(2),z:+m.pos.z.toFixed(2)})),lr:S.lastRound?1:0,fo:S.finishOrder.map(p=>p.id),pk:S.pickups.map(u=>u.id),rp:S.ropes.map(r=>({a:r.a.id,b:r.b.id,l:r.left})),ht:+((S.H&&S.H.t)||0).toFixed(3),tw:(S.H.traps||[]).filter(t=>t.temp!=null).map(t=>({x:+t.x.toFixed(2),z:+t.z.toFixed(2),o:t.owner,temp:t.temp,ty:t.type})),tf:S.treasureFound?1:0,hh:S.holeHidden?1:0,bk:(S.H.blocks||[]).map(b=>b.dead?1:0),rv:S.H.walls.map(w=>w.revealed?1:0),rt:(S.H.traps||[]).map(t=>t.revealed?1:0)};
 }
 function applySnap(sn){
   if(!sn||!Array.isArray(sn.players)||sn.players.length!==S.players.length)return false;
@@ -1544,15 +1705,16 @@ function applySnap(sn){
   S.players.forEach((p,i)=>{const d=sn.players[i];const wasVis=p.model.g.visible&&p.spawned&&!p.holed;const ox=p.model.g.position.x,oz=p.model.g.position.z;
     p.pos.set(+d.x||0,0,+d.z||0);p.pos.y=heightAt(S.H,p.pos.x,p.pos.z);p.vel.set(0,0,0);p.air=false;p.wet=false;p.prev=null;
     if(wasVis&&!!d.sp&&!d.h){p.vis.set(ox-p.pos.x,0,oz-p.pos.z);if(p.vis.length()>14)p.vis.set(0,0,0);}else p.vis.set(0,0,0);
-    p.strokes=d.s|0;p.total=d.t|0;p.pts=d.p|0;p.spawned=!!d.sp;p.cursed=!!d.cu;p.blind=!!d.bl;p.spectator=!!d.spc;p.missed=d.ms|0;if(Array.isArray(d.st)){p.st.bumps=d.st[0]|0;p.st.treasure=d.st[1]|0;p.st.aces=d.st[2]|0;p.st.skills=d.st[3]|0;p.st.sabotage=d.st[4]|0;}p.popT=null;p.finalShot=!!d.fs;p.holed=!!d.h;p.sunk=p.holed;p.frozen=!!d.f;p.shield=!!d.sh;p.shieldRounds=d.sr|0;
+    p.strokes=d.s|0;p.total=d.t|0;p.pts=d.p|0;p.spawned=!!d.sp;p.cursed=!!d.cu;p.blind=!!d.bl;p.spectator=!!d.spc;p.missed=d.ms|0;if(Array.isArray(d.st)){p.st.bumps=d.st[0]|0;p.st.treasure=d.st[1]|0;p.st.aces=d.st[2]|0;p.st.skills=d.st[3]|0;p.st.sabotage=d.st[4]|0;}p.popT=null;p.finalShot=!!d.fs;p.holed=!!d.h;p.sunk=p.holed;p.frozen=!!d.f;p.shield=!!d.sh;p.shieldRounds=d.sr|0;p.energy=d.en|0;p.anchor=d.an|0;p.reverse=d.rv2|0;p.attackBuff=d.ab|0;p.turnsTaken=d.tk|0;if(Array.isArray(d.lo))p.loadout=d.lo.filter(k=>SKILLS[k]);p.zonesUsed={};(d.zu||[]).forEach(k=>{p.zonesUsed[k]=1;});
     if(d.sk&&typeof d.sk==='object')for(const k in SKILL_MAX)p.sk[k]=clamp(d.sk[k]|0,0,SKILL_MAX[k]);
     p.model.g.visible=!p.holed&&p.spawned;p.model.g.scale.set(1,1,1);p.model.ice.visible=p.frozen;p.model.shield.visible=p.shield;p.lastRest=p.pos.clone();
   });
   for(const m of S.mines)scene.remove(m.mesh);S.mines=[];
   (sn.mines||[]).forEach(m=>{const o=S.players[m.o|0];if(o)placeMine(o,+m.x||0,+m.z||0);});
   S.ropes.forEach(r=>scene.remove(r.line));S.ropes=[];(sn.rp||[]).forEach(r=>{const a=S.players[r.a|0],b=S.players[r.b|0];if(a&&b)addRope(a,b,clamp(r.l|0,1,3));});
-  {S.H.traps=S.H.traps.filter(t=>{if(t.temp!=null){if(t.grp)S.course.remove(t.grp);S.wells=S.wells.filter(w=>w.t!==t);return false;}return true;});(sn.tw||[]).forEach(d=>{const t={type:d.ty==='oil'?'oil':'well',x:+d.x||0,z:+d.z||0,r:d.ty==='oil'?3:5.5,temp:clamp(d.temp|0,1,3),owner:d.o|0};S.H.traps.push(t);buildTrapVisual(S.course,S.H,t);});(S.H.blocks||[]).forEach((bl,i)=>{const d=!!((sn.bk||[])[i]);bl.dead=d;if(bl.mesh)bl.mesh.visible=!d;});S.H.walls.forEach((w,i)=>{if((sn.rv||[])[i])revealWall(w,true);});(S.H.traps||[]).forEach((t,i)=>{if((sn.rt||[])[i])revealTrap(t,true);});S.treasureFound=!!sn.tf;if(S.holeHidden&&!sn.hh){S.holeHidden=false;S.holeGrp.visible=true;if(S.holeU)S.holeU.value.z=HOLE_R;}}
+  {S.H.traps=S.H.traps.filter(t=>{if(t.temp!=null){if(t.grp)S.course.remove(t.grp);S.wells=S.wells.filter(w=>w.t!==t);return false;}return true;});(sn.tw||[]).forEach(d=>{const t={type:d.ty==='oil'?'oil':d.ty==='sand'?'sand':'well',x:+d.x||0,z:+d.z||0,r:d.ty==='oil'?3:d.ty==='sand'?2.2:5.5,temp:clamp(d.temp|0,1,3),owner:d.o|0};S.H.traps.push(t);buildTrapVisual(S.course,S.H,t);});(S.H.blocks||[]).forEach((bl,i)=>{const d=!!((sn.bk||[])[i]);bl.dead=d;if(bl.mesh)bl.mesh.visible=!d;});S.H.walls.forEach((w,i)=>{if((sn.rv||[])[i])revealWall(w,true);});(S.H.traps||[]).forEach((t,i)=>{if((sn.rt||[])[i])revealTrap(t,true);});S.treasureFound=!!sn.tf;if(S.holeHidden&&!sn.hh){S.holeHidden=false;S.holeGrp.visible=true;if(S.holeU)S.holeU.value.z=HOLE_R;}}
   S.lastRound=!!sn.lr;S.finishOrder=(sn.fo||[]).map(i=>S.players[i|0]).filter(Boolean);
+  S.preds=Array.isArray(sn.pr)?sn.pr.filter(x=>x&&DUEL.preds[x.k]).map(x=>({pid:x.pid|0,k:x.k})):[];S.chal=sn.ch&&DUEL.chal[sn.ch.k]?{pid:sn.ch.pid|0,k:sn.ch.k,d0:+sn.ch.d0||0}:null;S.H.gwindTemp=sn.gw&&isFinite(+sn.gw.x)?{x:+sn.gw.x,z:+sn.gw.z}:null;if(S.windArrow)S.windArrow.visible=false;S.H.walls.forEach((w,i)=>{const o=!!((sn.wo||[])[i]);if(!!w.open!==o){w.open=o;if(w.mesh)w.mesh.visible=!o;}});S.round=sn.rd|0;S.turnNo=sn.tn|0;S.showdown=sn.sd?{pid:sn.sd.pid|0,done:!!sn.sd.done}:null;S.showdownElig=Array.isArray(sn.se)?sn.se.map(x=>x|0):null;S.tiebreakUsed=!!sn.tb;S.phase='aim';S.reactT=0;S.shotEv={wall:0,bump:0,water:0,holed:false,ability:false,zone:false};
   {const keep=new Set((sn.pk||[]).map(i=>i|0));for(let k=S.pickups.length-1;k>=0;k--){if(!keep.has(S.pickups[k].id)){scene.remove(S.pickups[k].mesh);S.pickups.splice(k,1);}}}
   S.turnT=TT();
   S.cur=clamp(sn.cur|0,0,S.players.length-1);S.state='aim';S.pendingShot=false;S.armed.power=S.armed.jump=S.armed.magnet=S.armed.ghost=S.armed.warp=S.armed.giant=false;
@@ -1569,6 +1731,8 @@ function onNetAct(d){
   if(!applySnap(d.snap))return;
   const a=d.a;
   if(a.t==='skip'){applyAction({t:'skip'});}
+  else if(a.t==='chal'){applyAction({t:'chal',k:String(a.k)});}
+  else if(a.t==='showdown'){applyAction({t:'showdown'});}
   else if(a.t==='shot'){applyAction({t:'shot',dx:+a.dx||0,dz:+a.dz||0,pw:clamp(+a.pw||0,0.01,1),jump:!!a.jump,boost:!!a.boost,magnet:!!a.magnet,ghost:!!a.ghost,warp:!!a.warp,giant:!!a.giant,cursed:!!a.cursed});}
   else if(a.t==='skill'&&SKILLS[a.k]){applyAction({t:'skill',k:a.k,target:a.target==null?null:clamp(a.target|0,0,S.players.length-1),target2:a.target2==null?null:clamp(a.target2|0,0,S.players.length-1),x:isFinite(+a.x)&&a.x!=null?+a.x:null,z:isFinite(+a.z)&&a.z!=null?+a.z:null,dx:isFinite(+a.dx)&&a.dx!=null?+a.dx:null,dz:isFinite(+a.dz)&&a.dz!=null?+a.dz:null,rnd:clamp(+a.rnd||0,0,1)});}
 }
@@ -1586,8 +1750,9 @@ function ballScreenPos(){const p=S.cur>=0?cur():null;if(!p||!p.spawned)return nu
 canvas.addEventListener('pointerdown',e=>{
   if(S.intro){S.intro.t=S.intro.dur;return;}
   if(S.overview)return;
-  if(S.gp){const gp=S.gp;if(S.state!=='aim'||cur()!==gp.me){endGroundPick();return;}const c=gp.k==='shove'?S.players[gp.tid]:gp.me;if(!c){endGroundPick();return;}const hit=groundHit(e.clientX,e.clientY,c.pos.y);if(!hit)return;const hx=hit.x,hz=hit.z;const dx=hx-c.pos.x,dz=hz-c.pos.z;const d=Math.hypot(dx,dz);if(gp.k==='shove'){if(d<0.2)return;endGroundPick();doAction({t:'skill',k:'shove',target:gp.tid,dx:dx/d,dz:dz/d,rnd:Math.random()});}else{if(d>gp.rad+0.5){toast('خارج الدائرة · اختر مكاناً أقرب');return;}endGroundPick();doAction({t:'skill',k:gp.k,target:null,x:hx,z:hz,rnd:Math.random()});}return;}
-  if(S.state==='aim'&&isLocalHuman(cur())&&!S.drag){
+  if(S.gp){const gp=S.gp;if(S.state!=='aim'||(!gp.side&&cur()!==gp.me)||(gp.side&&S.phase!=='react')){endGroundPick();return;}const c=gp.k==='shove'?S.players[gp.tid]:(gp.side?cur():gp.me);if(!c){endGroundPick();return;}const hit=groundHit(e.clientX,e.clientY,c.pos.y);if(!hit)return;const hx=hit.x,hz=hit.z;const dx=hx-c.pos.x,dz=hz-c.pos.z;const d=Math.hypot(dx,dz);if(gp.side){if(gp.k==='wind'){if(d<0.2)return;endGroundPick();doSide({t:'react',k:'wind',dx:dx/d,dz:dz/d});}else{endGroundPick();doSide({t:'react',k:'trap',x:hx,z:hz});}return;}
+    if(gp.k==='shove'){if(d<0.2)return;endGroundPick();doAction({t:'skill',k:'shove',target:gp.tid,dx:dx/d,dz:dz/d,rnd:Math.random()});}else{if(d>gp.rad+0.5){toast('خارج الدائرة · اختر مكاناً أقرب');return;}endGroundPick();doAction({t:'skill',k:gp.k,target:null,x:hx,z:hz,rnd:Math.random()});}return;}
+  if(S.state==='aim'&&S.phase!=='react'&&isLocalHuman(cur())&&!S.drag){
     const bp=ballScreenPos();
     if(bp&&Math.hypot(e.clientX-bp.x,e.clientY-bp.y)<HIT){
       canvas.setPointerCapture(e.pointerId);
@@ -1660,7 +1825,7 @@ function stepWorld(h,ev){
         scene.remove(u.mesh);S.pickups.splice(k,1);
         const key=pickKey(b,u);
         burst(b.pos,22,0xffd23f,0.9);SFX.pickup();{const ring=new THREE.Mesh(new THREE.RingGeometry(0.4,0.6,32),new THREE.MeshBasicMaterial({color:0xffe066,transparent:true,opacity:0.9,depthTest:false,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.set(u.x,heightAt(H,u.x,u.z)+0.1,u.z);ring.renderOrder=6;scene.add(ring);S.fx.push({mesh:ring,t:0,life:0.7});}
-        const own=b.kind==='human';if(b.sk[key]<SKILL_MAX[key]){b.sk[key]++;b.pts+=1;toast(own?`📦 حصلت على ${SKILLS[key].icon} ${SKILLS[key].name} +1★`:`📦 ${b.name} حصل على مهارة غامضة +1★`);}
+        const own=b.kind==='human';if(F().boxEnergy){b.pts+=1;giveEnergy(b,1,own?'صندوق طاقة +1★':null);if(!own)toast(`📦 ${b.name} فتح صندوق طاقة +1★`);}else if(b.sk[key]<SKILL_MAX[key]){b.sk[key]++;b.pts+=1;toast(own?`📦 حصلت على ${SKILLS[key].icon} ${SKILLS[key].name} +1★`:`📦 ${b.name} حصل على مهارة غامضة +1★`);}
         else{b.pts+=2;toast(own?`📦 ${SKILLS[key].name} ممتلئة لديك، +2★`:`📦 ${b.name} فتح صندوقاً +2★`);}
         updateHUD();break;}
     }
@@ -1711,8 +1876,10 @@ function update(dt,time){
   S.spinners.forEach(o=>{o.g.rotation.y=-((H.t||0)*o.t.speed*(H.spinScale||1));});
   if(S.mill)S.mill.rotation.z+=dt*0.8;
   if(FAR.islands&&FAR.islands.visible)FAR.islands.children.forEach(isl=>{if(isl.userData.y0!=null)isl.position.y=isl.userData.y0+Math.sin(time*0.35+isl.userData.ph)*1.2;});
+  if(S.zoneMeshes)S.zoneMeshes.forEach((o,i)=>{o.ring.rotation.z+=dt*0.8;o.disc.material.opacity=0.16+Math.abs(Math.sin(time*2+i))*0.12;});
   if(S.spinDeco)S.spinDeco.forEach(h=>{h.rotation.y+=dt*h.userData.spin;h.position.y+=Math.sin(time*2+h.userData.spin)*dt*0.3;});
   if(S.padRing)S.padRing.material.opacity=0.55+Math.sin(time*3)*0.3;
+  if(S.windArrow&&S.windArrow.visible&&S.cur>=0){const cp=cur();S.windArrow.position.set(cp.model.g.position.x,cp.pos.y+0.12+Math.sin(time*4)*0.05,cp.model.g.position.z);}
   if(S.holeGlow){S.holeGlow.material.opacity=0.22+Math.abs(Math.sin(time*1.8))*0.25;const hs=2.4+Math.sin(time*1.8)*0.4;S.holeGlow.scale.set(hs,hs,1);}
   S.fans.forEach(o=>{o.bl.rotateZ(dt*9);const a=o.at.rotation;o.at.offset.x+=Math.sin(a)*dt*0.9;o.at.offset.y-=Math.cos(a)*dt*0.9;if(Q.level!=='low'&&(!o.t.grp||o.t.grp.visible)){o.acc=(o.acc||0)+dt;if(o.acc>0.1&&parts.length<Q.particles){o.acc=0;const t=o.t;parts.push({x:t.x+(Math.random()-0.5)*t.w*0.9,y:0.35+Math.random()*0.6,z:t.z+(Math.random()-0.5)*t.l*0.9,vx:t.fx*6,vy:2.2,vz:t.fz*6,life:0,max:0.45,r:0.85,g:0.95,b:1});}}});
   S.portals.forEach(o=>{o.ring.rotation.y+=dt*2;o.ring.position.y=1.1+Math.sin(time*3)*0.1;});
@@ -1729,13 +1896,13 @@ function update(dt,time){
   if(S.state==='moving'||S.state==='aim'||S.state==='wait'){
     const ev=[];S.acc+=(S.rawDt!=null?S.rawDt:dt)*(S.autoplay?3:1);let n=0;
     while(S.acc>=STEP&&n<48){S.players.forEach(b=>{if(!b.prev)b.prev=V3();b.prev.copy(b.pos);});stepWorld(STEP,ev);S.acc-=STEP;n++;}
-    if(ev.includes('holed')){S.players.forEach(b=>{if(b.holed&&!b.sunk&&!b.announced){b.announced=true;holeFx(b.pos);S.finishOrder.push(b);if(b.strokes===1)b.st.aces++;showEmote(b,b.strokes===1?'🤩':'😎');updateHUD();SFX.holed();[0xffd23f,0xff7a9a,0x7cd8ff,0x5ee68f].forEach(c=>burst(b.pos,12,c,1.4,2.2));toast(`⛳ ${b.name} أدخلها بـ ${b.strokes} ${b.strokes===1?'ضربة':'ضربات'}!`);
+    if(ev.includes('holed')){if(S.shotEv)S.shotEv.holed=true;S.players.forEach(b=>{if(b.holed&&!b.sunk&&!b.announced){b.announced=true;holeFx(b.pos);S.finishOrder.push(b);if(b.strokes===1)b.st.aces++;showEmote(b,b.strokes===1?'🤩':'😎');updateHUD();SFX.holed();[0xffd23f,0xff7a9a,0x7cd8ff,0x5ee68f].forEach(c=>burst(b.pos,12,c,1.4,2.2));toast(`⛳ ${b.name} أدخلها بـ ${b.strokes} ${b.strokes===1?'ضربة':'ضربات'}!`);
       if(!S.lastRound){S.lastRound=true;S.players.forEach(q=>{if(!q.holed)q.finalShot=true;});setTimeout(()=>toast('🔥 الجولة الأخيرة: ضربة واحدة لكل لاعب!'),1500);}}});}
-    if(ev.includes('bump')){S.players.forEach(b=>{if(b.trapHit&&b.trapHit.type==='bump'){const o=S.bumpers.find(q=>q.t===b.trapHit);if(o)o.pop=1;}});}
+    if(ev.includes('bump')){if(S.shotEv)S.shotEv.bump++;S.players.forEach(b=>{if(b.trapHit&&b.trapHit.type==='bump'){const o=S.bumpers.find(q=>q.t===b.trapHit);if(o)o.pop=1;}});}
     if(ev.includes('bump')&&!S.bumpToast){S.bumpToast=true;toast('🔴 القافز دفع الكرة!');S.shake=0.35;SFX.bump();buzz(40);setTimeout(()=>S.bumpToast=false,1500);}
     if(ev.includes('spike')){S.players.forEach(b=>{if(b.spikeHit&&!b.spikeDone){b.spikeDone=true;b.strokes++;burst(b.pos,16,0xff4040,1.0);S.shake=0.4;SFX.spike();toast(`🔺 ${b.name} صدمته الأشواك: +1 ضربة`);}});}
-    if(ev.includes('well')){S.players.forEach(b=>{if(b.wet&&b.wetT===0){toast(`🌀 الثقب ابتلع ${b.name}! +1 ضربة`);b.wetT=0.001;burst(b.pos,20,0x9b59b6,0.8);SFX.well();}});}
-    if(ev.includes('wall')){SFX.wall();buzz(12);}
+    if(ev.includes('well')){if(S.shotEv)S.shotEv.water=true;S.players.forEach(b=>{if(b.wet&&b.wetT===0){toast(`🌀 الثقب ابتلع ${b.name}! +1 ضربة`);b.wetT=0.001;burst(b.pos,20,0x9b59b6,0.8);SFX.well();}});}
+    if(ev.includes('wall')){SFX.wall();buzz(12);if(S.shotEv&&S.H.t-(S.lastWallT==null?-1:S.lastWallT)>0.2){S.shotEv.wall++;S.lastWallT=S.H.t;}}
     S.players.forEach(b=>{if(b.hit){burst(b.pos,Math.min(12,3+b.hit|0),0xe8dcc0,0.35);b.hit=0;}
       if(b.blockHit){const bl=b.blockHit;b.blockHit=null;if(bl.mesh&&bl.mesh.visible){bl.mesh.visible=false;burst(V3(bl.x,heightAt(H,bl.x,bl.z)+0.6,bl.z),26,bl.kind==='tree'?0x3fae62:bl.kind==='rock'?0x9c9c94:0xc08a4a,1.2,1.8);SFX.explode();S.shake=0.25;b.pts+=1;toast(`${bl.kind==='tree'?'🌳 كسر شجرة':bl.kind==='rock'?'🪨 حطّم صخرة':'📦 كسر صندوقاً'} ${b.name} وفُتح الطريق! +1★`);}}
       if(b.hitWall){const w=b.hitWall;b.hitWall=null;revealWall(w);}
@@ -1743,7 +1910,7 @@ function update(dt,time){
       if(S.holeHidden&&b.spawned&&!b.holed&&Math.hypot(b.pos.x-H.hole.x,b.pos.z-H.hole.z)<12){S.holeHidden=false;S.holeGrp.visible=true;if(S.holeU)S.holeU.value.z=HOLE_R;burst(V3(H.hole.x,heightAt(H,H.hole.x,H.hole.z),H.hole.z),26,0xffd23f,1.2);toast('⛳ وُجدت الحفرة المخفية!');}});
     if(ev.includes('portal')){SFX.freeze();toast('🌀 بوابة انتقال!');}
     for(let k=S.reveals.length-1;k>=0;k--){const r=S.reveals[k];r.t-=dt;if(r.t<=0){r.o.visible=false;S.reveals.splice(k,1);}}
-    if(ev.includes('water')){S.players.forEach(b=>{if(b.wet&&b.wetT===0){toast(`💦 ${b.name} سقط في الماء! +1 ضربة`);b.wetT=0.001;burst(b.pos,26,0x7fd6ff,1.2,2);SFX.water();cutRopes(b);}});}
+    if(ev.includes('water')){if(S.shotEv)S.shotEv.water=true;S.players.forEach(b=>{if(b.wet&&b.wetT===0){toast(`💦 ${b.name} سقط في الماء! +1 ضربة`);b.wetT=0.001;burst(b.pos,26,0x7fd6ff,1.2,2);SFX.water();cutRopes(b);}});}
     if(S.state==='moving'){
     const busy=S.players.some(b=>!b.sunk&&b.spawned&&(b.air||b.vel.x!==0||b.vel.z!==0||b.wet||(b.holed&&!b.sunk)));
     S.stopTimer=busy?0:S.stopTimer+dt;
@@ -1800,7 +1967,8 @@ function update(dt,time){
   {const cp=S.cur>=0?cur():null;const showTR=cp&&cp.spawned&&!cp.holed&&cp.model.g.visible&&(S.state==='aim'||S.state==='wait');if(showTR){turnRing.visible=true;turnRing.position.set(cp.model.g.position.x,cp.pos.y+0.05,cp.model.g.position.z);turnRing.material.color.setHex((S.themeNow&&S.themeNow.accent2)||0xffd23f);const ts=1+Math.sin(time*3)*0.07;turnRing.scale.set(ts,ts,1);}else turnRing.visible=false;if(!(d&&S.state==='aim')&&!(S.remoteAimShown&&S.remoteAim))aimGlow.visible=false;}
   S.ropes.forEach(r=>{const A=r.a.model.g.position,B=r.b.model.g.position;_v.set(B.x-A.x,B.y-A.y,B.z-A.z);const len=_v.length();r.line.position.set((A.x+B.x)/2,(A.y+B.y)/2+R,(A.z+B.z)/2);r.line.scale.set(1,Math.max(0.01,len),1);if(len>1e-4)r.line.quaternion.setFromUnitVectors(_up,_v.normalize());r.line.material.opacity=0.6+Math.abs(Math.sin(time*5))*0.35;r.line.visible=r.a.model.g.visible&&r.b.model.g.visible;});
   S.pickups.forEach(u=>{u.box.rotation.y+=dt*1.6;u.box.rotation.x=Math.sin(time*1.3+u.id)*0.25;u.box.position.y=0.6+Math.sin(time*3+u.id)*0.1;u.icon.position.y=u.box.position.y+0.85;if(u.halo){u.halo.position.y=u.box.position.y;const hs=2.0+Math.sin(time*2.5+u.id)*0.4;u.halo.scale.set(hs,hs,1);u.halo.material.opacity=0.3+Math.abs(Math.sin(time*2+u.id))*0.3;}});
-  if(S.state==='aim'&&S.cur>=0&&cur().kind!=='bot'&&!S.botPull){
+  if(S.state==='aim'&&S.phase==='react'){S.reactT-=dt*(S.autoplay?3:1);if(S.reactT<=0)endReact();const rp=document.getElementById('reactPill');if(rp)rp.textContent=`⏳ ${Math.max(0,Math.ceil(S.reactT))}`;}
+  if(S.state==='aim'&&S.cur>=0&&(cur().kind!=='bot'||(S.mode==='online'&&!isHostNow()))&&!S.botPull){
     if(cur().kind==='remote'&&!S.remoteAck){S.remoteWait=(S.remoteWait||0)+dt;}
     if(!S.drag)S.turnT-=dt;
     const left=Math.max(0,Math.ceil(S.turnT));
