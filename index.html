@@ -167,7 +167,7 @@ tr.me td{color:#9a6b00;font-weight:700}
 
 <div id="start" class="overlay">
   <div class="card">
-    <h1>غولف الاندفاع <small style="font-size:12px;color:var(--muted);font-weight:500">الإصدار 30</small></h1>
+    <h1>غولف الاندفاع <small style="font-size:12px;color:var(--muted);font-weight:500">الإصدار 31</small></h1>
     <p>اسحب كرتك للخلف كالمقلاع واتركها لتنطلق نحو الحفرة. أول من يُدخلها يأخذ أكبر النقاط ويفتح «الجولة الأخيرة»: ضربة واحدة للبقية. المهارات لا تبدأ معك: اصطدم بالصناديق المجهولة ❓ لتحصل على واحدة من 12 مهارة عشوائية، منها الحبل الذي يربط خصمين معاً واللعنة التي تحرف ضربة خصمك. احذر الفخاخ: رمل، قافز، عارضة دوّارة، مروحة، ثقب جاذب، وأشواك. اصدم الخصوم وازرع الألغام لتكسب نقاطاً. لكل مرحلة حدث عشوائي وكنز مخفي وعوائق تُكسر بأول لمسة لتفتح الطريق، ومستوى «جحيم» يخفي الفخاخ والجدران والحفرة. الفيزياء رياضية: القوة تساوي مسافة التوقف بالضبط، والكرة ترتد عن الجدران بزاوية انعكاس مساوية لزاوية السقوط وبلا فقدان للسرعة.</p>
     <div class="tabs" id="modeTabs">
       <button type="button" data-m="solo" class="on">🤖 ضد الكمبيوتر</button>
@@ -286,7 +286,7 @@ const hex=c=>'#'+c.toString(16).padStart(6,'0');
 
 const IS_MOBILE=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 const MAP_SCALE=2.5;
-const MAXV=23, G=9.8, R=0.45, HOLE_R=0.62, FRIC=2.2, REST=1.0, WALL_LOSS=1.0, MAX_DIST=80, MAX_STROKES=8, STEP=1/120, TURN_TIME=20;
+const MAXV=23, G=9.8, R=0.45, HOLE_R=0.62, FRIC=2.9, REST=1.0, WALL_LOSS=1.0, MAX_DIST=80, MAX_STROKES=8, STEP=1/120, TURN_TIME=20;
 const ORDER_PTS=[5,3,2,1,1,1];
 const SKILL_MAX={power:2,jump:2,shield:1,freeze:1,shove:2,mine:1,magnet:1,ghost:1,swap:1,quake:1,rope:1,curse:1,warp:1,giant:1,steal:1,hole:1};
 const SKILL_ZERO=()=>({power:0,jump:0,shield:0,freeze:0,shove:0,mine:0,magnet:0,ghost:0,swap:0,quake:0,rope:0,curse:0,warp:0,giant:0,steal:0,hole:0});
@@ -409,7 +409,7 @@ function physStep(b,H,dt,ev){
     if(b.magnet){const mx=H.hole.x-b.pos.x,mz=H.hole.z-b.pos.z;const md=Math.hypot(mx,mz);if(md<9&&md>0.01){ax+=mx/md*10;az+=mz/md*10;}}
     b.vel.x+=ax*dt; b.vel.z+=az*dt;
     const sp=Math.hypot(b.vel.x,b.vel.z);
-    if(sp>0){const ns=Math.max(0,sp-fr*dt);b.vel.x*=ns/sp;b.vel.z*=ns/sp;}
+    if(sp>0){const tail=sp<1.6?1.6*(1-sp/1.6):0;const ns=Math.max(0,sp-(fr+tail)*dt);b.vel.x*=ns/sp;b.vel.z*=ns/sp;}
     if(Math.hypot(b.vel.x,b.vel.z)<0.12&&Math.hypot(ax,az)<fr){b.vel.x=0;b.vel.z=0;}
     b.pos.x+=b.vel.x*dt; b.pos.z+=b.vel.z*dt;
     b.pos.y=heightAt(H,b.pos.x,b.pos.z);
@@ -945,6 +945,7 @@ function endHole(){
   $('#nextBtn').textContent=last?(S.mode==='online'?'العودة للغرفة':'العب مجدداً'):'الحفرة التالية';
   $('#nextBtn').classList.toggle('hidden',S.mode==='online'&&!last);
   $('#board').classList.remove('hidden');
+  if(S.autoplay){setTimeout(()=>{if(S.state==='board')$('#nextBtn').click();},2500);}
   if(S.mode==='online'&&!last){clearTimeout(S.autoNext);S.autoNext=setTimeout(()=>{if(S.state==='board'){$('#board').classList.add('hidden');loadHole(S.hole+1);}},5000);}
 }
 $('#rematchBtn').addEventListener('click',()=>{$('#board').classList.add('hidden');S.players.forEach(p=>{p.total=0;p.pts=0;p.sk=SKILL_ZERO();p.st={bumps:0,treasure:0,aces:0,skills:0,sabotage:0};});const data={players:S.players.map(p=>({peer:p.peer,name:p.name,skin:p.model?undefined:undefined})),rules:S.rules,seed:Math.floor(Math.random()*1e6)};data.players=seats().map(p=>({peer:p.peer,name:String(p.presence.name).slice(0,14),skin:SKINS.includes(p.presence.skin)?p.presence.skin:'classic'}));if(!data.players.length)return;NET.room.emit('start',data).catch(()=>{});onNetStart(data);});
@@ -1430,13 +1431,13 @@ function update(dt,time){
   if(S.state!==S.prevState){S.moveT=0;S.slowT=0;S.aimT=0;S.prevState=S.state;}
   if(S.state==='moving'){S.moveT=(S.moveT||0)+dt;let maxSp=0,anyAir=false;S.players.forEach(b=>{if(b.spawned&&!b.sunk){maxSp=Math.max(maxSp,Math.hypot(b.vel.x,b.vel.z));if(b.air)anyAir=true;}});
     S.slowT=(maxSp<0.35&&!anyAir)?(S.slowT||0)+dt:0;
-    if(S.moveT>20||S.slowT>1.5){S.players.forEach(b=>{if(!b.air){b.vel.set(0,0,0);}else if(S.moveT>20){b.vel.set(0,0,0);b.air=false;b.pos.y=heightAt(S.H,b.pos.x,b.pos.z);}});}}
+    if(S.moveT>20||S.slowT>0.8){S.players.forEach(b=>{if(!b.air){b.vel.set(0,0,0);}else if(S.moveT>20){b.vel.set(0,0,0);b.air=false;b.pos.y=heightAt(S.H,b.pos.x,b.pos.z);}});}}
   if(S.state==='wait'){S.waitT=(S.waitT||0)+dt;if(S.waitT>4){S.waitT=0;nextTurn();}}else S.waitT=0;
   if(S.state==='aim'&&S.cur>=0){S.aimT=(S.aimT||0)+dt;const cp=cur();if(cp.kind==='bot'&&!S.botPull&&S.aimT>7){S.aimT=0;botAim(cp);}}
   if(S.state==='moving'||S.state==='aim'||S.state==='wait'){
     const ev=[];S.acc+=(S.rawDt!=null?S.rawDt:dt);let n=0;
     while(S.acc>=STEP&&n<48){S.players.forEach(b=>{if(!b.prev)b.prev=V3();b.prev.copy(b.pos);});stepWorld(STEP,ev);S.acc-=STEP;n++;}
-    if(ev.includes('holed')){S.players.forEach(b=>{if(b.holed&&!b.sunk&&!b.announced){b.announced=true;S.finishOrder.push(b);if(b.strokes===1)b.st.aces++;showEmote(b,b.strokes===1?'🤩':'😎');SFX.holed();[0xffd23f,0xff7a9a,0x7cd8ff,0x5ee68f].forEach(c=>burst(b.pos,12,c,1.4,2.2));toast(`⛳ ${b.name} أدخلها بـ ${b.strokes} ${b.strokes===1?'ضربة':'ضربات'}!`);
+    if(ev.includes('holed')){S.players.forEach(b=>{if(b.holed&&!b.sunk&&!b.announced){b.announced=true;S.finishOrder.push(b);if(b.strokes===1)b.st.aces++;showEmote(b,b.strokes===1?'🤩':'😎');updateHUD();SFX.holed();[0xffd23f,0xff7a9a,0x7cd8ff,0x5ee68f].forEach(c=>burst(b.pos,12,c,1.4,2.2));toast(`⛳ ${b.name} أدخلها بـ ${b.strokes} ${b.strokes===1?'ضربة':'ضربات'}!`);
       if(!S.lastRound){S.lastRound=true;S.players.forEach(q=>{if(!q.holed)q.finalShot=true;});setTimeout(()=>toast('🔥 الجولة الأخيرة: ضربة واحدة لكل لاعب!'),1500);}}});}
     if(ev.includes('bump')&&!S.bumpToast){S.bumpToast=true;toast('🔴 قافز! انطلقت الكرة');S.shake=0.35;SFX.bump();setTimeout(()=>S.bumpToast=false,1500);}
     if(ev.includes('spike')){S.players.forEach(b=>{if(b.spikeHit&&!b.spikeDone){b.spikeDone=true;b.strokes++;burst(b.pos,16,0xff4040,1.0);S.shake=0.4;SFX.spike();toast(`🔺 ${b.name} صدمته الأشواك: +1 ضربة`);}});}
@@ -1453,7 +1454,7 @@ function update(dt,time){
     if(S.state==='moving'){
     const busy=S.players.some(b=>!b.sunk&&b.spawned&&(b.air||b.vel.x!==0||b.vel.z!==0||b.wet||(b.holed&&!b.sunk)));
     S.stopTimer=busy?0:S.stopTimer+dt;
-    if(!busy&&S.stopTimer>0.35){S.players.forEach(b=>{b.bumpedThisShot=false;b.announced=false;});onAllStopped();}
+    if(!busy&&S.stopTimer>0.2){S.players.forEach(b=>{b.bumpedThisShot=false;b.announced=false;});onAllStopped();}
     }else if(S.state==='aim'&&S.cur>=0&&cur().holed){S.state='wait';setTimeout(nextTurn,1200);}
   }
   S.players.forEach(b=>{
