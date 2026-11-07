@@ -167,7 +167,7 @@ tr.me td{color:#9a6b00;font-weight:700}
 
 <div id="start" class="overlay">
   <div class="card">
-    <h1>غولف الاندفاع <small style="font-size:12px;color:var(--muted);font-weight:500">الإصدار 31</small></h1>
+    <h1>غولف الاندفاع <small style="font-size:12px;color:var(--muted);font-weight:500">الإصدار 33</small></h1>
     <p>اسحب كرتك للخلف كالمقلاع واتركها لتنطلق نحو الحفرة. أول من يُدخلها يأخذ أكبر النقاط ويفتح «الجولة الأخيرة»: ضربة واحدة للبقية. المهارات لا تبدأ معك: اصطدم بالصناديق المجهولة ❓ لتحصل على واحدة من 12 مهارة عشوائية، منها الحبل الذي يربط خصمين معاً واللعنة التي تحرف ضربة خصمك. احذر الفخاخ: رمل، قافز، عارضة دوّارة، مروحة، ثقب جاذب، وأشواك. اصدم الخصوم وازرع الألغام لتكسب نقاطاً. لكل مرحلة حدث عشوائي وكنز مخفي وعوائق تُكسر بأول لمسة لتفتح الطريق، ومستوى «جحيم» يخفي الفخاخ والجدران والحفرة. الفيزياء رياضية: القوة تساوي مسافة التوقف بالضبط، والكرة ترتد عن الجدران بزاوية انعكاس مساوية لزاوية السقوط وبلا فقدان للسرعة.</p>
     <div class="tabs" id="modeTabs">
       <button type="button" data-m="solo" class="on">🤖 ضد الكمبيوتر</button>
@@ -758,13 +758,16 @@ function buildTrapVisual(C,H,t){const y=heightAt(H,t.x,t.z);const tg=new THREE.G
       tg.add(g);S.portals.push({ring,t});}
   if(t.hidden&&S.rules.diff!=='normal')tg.visible=false;
 }
+function ghostify(obj){obj.traverse(o=>{if(o.isMesh&&o.material){const ms=Array.isArray(o.material)?o.material:[o.material];o.material=ms.length===1?ms[0].clone():ms.map(m=>m.clone());const arr=Array.isArray(o.material)?o.material:[o.material];arr.forEach(m=>{m.transparent=true;m.opacity=0.55;m.emissive&&m.emissive.setHex(0x334455);});}});obj.visible=true;}
+function revealWall(w,quiet){if(!w||!w.mesh||w.mesh.visible)return;w.revealed=true;ghostify(w.mesh);if(!quiet){burst(V3(w.x,heightAt(S.H,w.x,w.z)+0.5,w.z),16,0xffffff,0.7);toast('👻 جدار مخفي انكشف وبقي ظاهراً');}}
+function revealTrap(t,quiet){if(!t||!t.grp||t.grp.visible)return;t.revealed=true;ghostify(t.grp);if(!quiet)toast('⚠️ فخ مخفي انكشف وبقي ظاهراً');}
 function loadHole(i,silent){
   S.hole=i;const hi=S.order[i]!=null?S.order[i]:i;const H=S.H=buildHole(Object.assign({},HOLES[hi],{traps:TRAPS[hi]||[],blocks:BLOCKS[hi]||[]}));const TH=THEMES[H.theme||'classic'];
   {const rs=seeded((S.seed||1)*13+hi*7+1);const ev=EVENTS[Math.floor(rs()*EVENTS.length)];H.event=ev.id;
    if(ev.id==='storm'){const a=rs()*Math.PI*2;H.gwind={x:Math.cos(a)*3,z:Math.sin(a)*3};}if(ev.id==='lowg')H.gScale=0.45;if(ev.id==='ice')H.fricScale=0.5;if(ev.id==='mud')H.fricScale=1.6;if(ev.id==='chaos')H.spinScale=2;
    if(ev.id==='rich'){const extra=(H.items||[]).map(it=>({x:clamp(it.x+(rs()-0.5)*8,-H.w/2+2,H.w/2-2),z:clamp(it.z+(rs()-0.5)*8,-H.l/2+2,H.l/2-2)}));H.items=(H.items||[]).concat(extra);}
    H.treasure={x:(rs()-0.5)*(H.w-6),z:(rs()-0.5)*(H.l-6)};S.treasureFound=false;S.eventInfo=ev;
-   if(S.rules.diff==='insane'){const rs2=seeded(hi*17+3);H.walls.forEach(w=>{if(!w.hidden&&rs2()<0.35)w.hidden=true;});}}
+   if(S.rules.diff==='insane'){const rs2=seeded(hi*17+3);H.walls.forEach(w=>{const nearStart=Math.hypot(w.x-H.start.x,w.z-H.start.z)<16;if(nearStart)w.hidden=false;else if(!w.hidden&&rs2()<0.2)w.hidden=true;});}else{H.walls.forEach(w=>{w.hidden=false;});}}
   applyTheme(TH,H);
   if(S.course)scene.remove(S.course);
   const C=S.course=new THREE.Group();scene.add(C);
@@ -777,7 +780,16 @@ function loadHole(i,silent){
     const f=0.72+0.28*clamp(d/1.5,0,1);col[k*3]=f;col[k*3+1]=f;col[k*3+2]=f;}
   geo.setAttribute('color',new THREE.BufferAttribute(col,3));geo.computeVertexNormals();
   const gt=grassFor(TH).clone();gt.needsUpdate=true;gt.repeat.set(H.w/4.5,H.l/4.5);
-  const ground=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({map:gt,vertexColors:true,roughness:0.92,metalness:0}));ground.receiveShadow=true;C.add(ground);
+  const gmat=new THREE.MeshStandardMaterial({map:gt,vertexColors:true,roughness:0.92,metalness:0});
+  gmat.onBeforeCompile=sh=>{sh.vertexShader='varying vec3 vW;\n'+sh.vertexShader.replace('#include <worldpos_vertex>','#include <worldpos_vertex>\nvW=(modelMatrix*vec4(transformed,1.0)).xyz;');
+    sh.fragmentShader='varying vec3 vW;\n'+sh.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\n{float h=vW.y;float t=clamp(h/2.2,-1.0,1.0);vec3 hi=vec3(1.14,1.10,0.80);vec3 lo=vec3(0.66,0.80,1.06);diffuseColor.rgb*=mix(vec3(1.0),t>0.0?hi:lo,abs(t));float sl=length(vec2(dFdx(h),dFdy(h)));float onSlope=clamp(sl*60.0,0.0,1.0);float l=abs(fract(h*2.5)-0.5);float line=1.0-smoothstep(0.0,0.12,l);diffuseColor.rgb*=1.0-line*0.32*onSlope;}');};
+  const ground=new THREE.Mesh(geo,gmat);ground.receiveShadow=true;C.add(ground);
+  {const pos=[],uvs=[],idx=[];let n=0;
+   for(let x=-H.w/2+2;x<=H.w/2-2;x+=3.2)for(let z=-H.l/2+2;z<=H.l/2-2;z+=3.2){const [gx,gz]=gradAt(H,x,z);const g=Math.hypot(gx,gz);if(g<0.07)continue;const dx=-gx/g,dz=-gz/g;const rx=-dz,rz=dx;const sz=0.55+Math.min(0.5,g*2);
+     const cs=[[-rx*0.5*sz-dx*0.6*sz,-rz*0.5*sz-dz*0.6*sz],[rx*0.5*sz-dx*0.6*sz,rz*0.5*sz-dz*0.6*sz],[rx*0.5*sz+dx*0.6*sz,rz*0.5*sz+dz*0.6*sz],[-rx*0.5*sz+dx*0.6*sz,-rz*0.5*sz+dz*0.6*sz]];
+     cs.forEach(([ox,oz],k)=>{const px=x+ox,pz=z+oz;pos.push(px,heightAt(H,px,pz)+0.05,pz);uvs.push(k===0||k===3?0:1,k<2?0:1);});idx.push(n,n+1,n+2,n,n+2,n+3);n+=4;}
+   if(n){const ag=new THREE.BufferGeometry();ag.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));ag.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));ag.setIndex(idx);
+     const am=new THREE.Mesh(ag,new THREE.MeshBasicMaterial({map:arrowTex,transparent:true,opacity:0.5,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));am.renderOrder=2;C.add(am);}}
   const B=4.5;
   {const fr=new THREE.Mesh(new THREE.PlaneGeometry(H.w+1.6,H.l+1.6),new THREE.MeshStandardMaterial({color:0x2f8a3c,roughness:1}));fr.rotation.x=-Math.PI/2;fr.position.y=-0.02;fr.receiveShadow=true;C.add(fr);}
   const rough=new THREE.Mesh(new THREE.PlaneGeometry(H.w+B*2,H.l+B*2),new THREE.MeshStandardMaterial({color:TH.rough,roughness:0.95}));rough.rotation.x=-Math.PI/2;rough.position.y=-0.03;rough.receiveShadow=true;C.add(rough);
@@ -788,7 +800,7 @@ function loadHole(i,silent){
   const rails=[[0,H.l/2+0.2,H.w+0.8,0.4],[0,-H.l/2-0.2,H.w+0.8,0.4],[H.w/2+0.2,0,0.4,H.l],[-H.w/2-0.2,0,0.4,H.l]];
   const capMat=new THREE.MeshStandardMaterial({color:0xf3dfb2,roughness:0.6});
   for(const [x,z,w,l] of rails){const base=new THREE.Mesh(new THREE.BoxGeometry(w,1.1,l),new THREE.MeshStandardMaterial({color:TH.soil,roughness:1}));base.position.set(x,-0.55,z);C.add(base);const rg=makeRail(x,z,w,l,0.55,railMat,capMat);rg.position.y=0;C.add(rg);}
-  for(const w of H.walls){const m=makeRail(w.x,w.z,w.w,w.l,w.h,wallMat,capMat);m.position.y=heightAt(H,w.x,w.z)-0.05;C.add(m);w.mesh=m;if(w.hidden&&S.rules.diff!=='normal')m.visible=false;}
+  for(const w of H.walls){const m=makeRail(w.x,w.z,w.w,w.l,w.h,wallMat,capMat);m.position.y=heightAt(H,w.x,w.z)-0.05;C.add(m);w.mesh=m;if(w.hidden&&S.rules.diff==='insane')m.visible=false;}
   S.reveals=[];
   for(const p of H.posts){const m=new THREE.Mesh(new THREE.CylinderGeometry(p.r,p.r,1.2,18),new THREE.MeshStandardMaterial({color:0xe85d5d,roughness:0.5}));m.position.set(p.x,heightAt(H,p.x,p.z)+0.4,p.z);m.castShadow=true;C.add(m);
     const ring=new THREE.Mesh(new THREE.CylinderGeometry(p.r+0.01,p.r+0.01,0.25,18),new THREE.MeshLambertMaterial({color:0xffffff}));ring.position.set(p.x,heightAt(H,p.x,p.z)+0.75,p.z);C.add(ring);}
@@ -1101,7 +1113,7 @@ function mySkin(){try{const v=localStorage.getItem('golf-skin');if(SKINS.include
 function renderSkins(){const row=$('#skinRow');if(row.children.length)return;const cur=mySkin();SKINS.forEach(sk=>{const c=document.createElement('canvas');c.width=c.height=92;const g=c.getContext('2d');const src=ballCanvas(0x2f80ed,sk);g.save();g.beginPath();g.arc(46,46,44,0,Math.PI*2);g.clip();g.drawImage(src,140,20,230,230,0,0,92,92);g.restore();c.title=sk;c.dataset.skin=sk;if(sk===cur)c.classList.add('on');c.addEventListener('click',()=>{try{localStorage.setItem('golf-skin',sk);}catch(e){}[...row.children].forEach(x=>x.classList.toggle('on',x===c));if(NET.room){NET.room.presence({skin:sk}).catch(()=>{});}});row.appendChild(c);});}
 function renderRules(){renderSkins();const r=S.rules;[...$('#diffSeg').children].forEach(b=>b.classList.toggle('on',b.dataset.v===r.diff));[...$('#ttSeg').children].forEach(b=>b.classList.toggle('on',+b.dataset.v===r.turnTime));
   $('#mapGrid').innerHTML=HOLES.map((h,i)=>{const k=r.maps.indexOf(i);return `<button type="button" class="mchip ${k>=0?'on':''}" data-i="${i}">${THEMES[h.theme||'classic'].icon} ${h.name}<small>بار ${h.par} · ${THEMES[h.theme||'classic'].hazard}</small>${k>=0?`<span class="num">${k+1}</span>`:''}</button>`;}).join('');
-  $('#diffHint').textContent=r.diff==='normal'?'كل الفخاخ ظاهرة.':r.diff==='hard'?'🫣 بعض الفخاخ مخفية ولا تظهر إلا لحظة تفعيلها.':'😈 فخاخ وجدران مخفية، والحفرة نفسها مخفية حتى تقترب منها كرة.';}
+  $('#diffHint').textContent=r.diff==='normal'?'كل شيء ظاهر.':r.diff==='hard'?'🫣 بعض الفخاخ مخفية، وتبقى ظاهرة بعد أول تفعيل.':'😈 فخاخ وجدران مخفية تنكشف وتبقى ظاهرة عند لمسها، والحفرة مخفية حتى تقترب منها كرة.';}
 function moveRules(slot){const box=$('#rulesBox');const el=$(slot);if(el&&box.parentNode!==el)el.appendChild(box);box.classList.toggle('ro',slot==='#rulesSlotLobby'&&!isHostNow());renderRules();}
 function isHostNow(){if(!NET.room)return true;const l=seats();return !!(l[0]&&l[0].peer===NET.me);}
 function broadcastRules(){if(NET.room&&isHostNow()){NET.room.emit('rules',S.rules).catch(()=>{});}}
@@ -1256,7 +1268,7 @@ function onNetStart(data){
   beginGame();
 }
 function makeSnap(){
-  return {hole:S.hole,cur:S.cur,players:S.players.map(p=>({x:+p.pos.x.toFixed(3),z:+p.pos.z.toFixed(3),s:p.strokes,t:p.total,p:p.pts,sp:p.spawned?1:0,cu:p.cursed?1:0,st:[p.st.bumps,p.st.treasure,p.st.aces,p.st.skills,p.st.sabotage],h:p.holed?1:0,f:p.frozen?1:0,sh:p.shield?1:0,sr:p.shieldRounds,fs:p.finalShot?1:0,sk:p.sk})),mines:S.mines.map(m=>({o:m.owner.id,x:+m.pos.x.toFixed(2),z:+m.pos.z.toFixed(2)})),lr:S.lastRound?1:0,fo:S.finishOrder.map(p=>p.id),pk:S.pickups.map(u=>u.id),rp:S.ropes.map(r=>({a:r.a.id,b:r.b.id,l:r.left})),ht:+((S.H&&S.H.t)||0).toFixed(3),tw:(S.H.traps||[]).filter(t=>t.temp!=null).map(t=>({x:+t.x.toFixed(2),z:+t.z.toFixed(2),o:t.owner,temp:t.temp})),tf:S.treasureFound?1:0,hh:S.holeHidden?1:0,bk:(S.H.blocks||[]).map(b=>b.dead?1:0)};
+  return {hole:S.hole,cur:S.cur,players:S.players.map(p=>({x:+p.pos.x.toFixed(3),z:+p.pos.z.toFixed(3),s:p.strokes,t:p.total,p:p.pts,sp:p.spawned?1:0,cu:p.cursed?1:0,st:[p.st.bumps,p.st.treasure,p.st.aces,p.st.skills,p.st.sabotage],h:p.holed?1:0,f:p.frozen?1:0,sh:p.shield?1:0,sr:p.shieldRounds,fs:p.finalShot?1:0,sk:p.sk})),mines:S.mines.map(m=>({o:m.owner.id,x:+m.pos.x.toFixed(2),z:+m.pos.z.toFixed(2)})),lr:S.lastRound?1:0,fo:S.finishOrder.map(p=>p.id),pk:S.pickups.map(u=>u.id),rp:S.ropes.map(r=>({a:r.a.id,b:r.b.id,l:r.left})),ht:+((S.H&&S.H.t)||0).toFixed(3),tw:(S.H.traps||[]).filter(t=>t.temp!=null).map(t=>({x:+t.x.toFixed(2),z:+t.z.toFixed(2),o:t.owner,temp:t.temp})),tf:S.treasureFound?1:0,hh:S.holeHidden?1:0,bk:(S.H.blocks||[]).map(b=>b.dead?1:0),rv:S.H.walls.map(w=>w.revealed?1:0),rt:(S.H.traps||[]).map(t=>t.revealed?1:0)};
 }
 function applySnap(sn){
   if(!sn||!Array.isArray(sn.players)||sn.players.length!==S.players.length)return false;
@@ -1274,7 +1286,7 @@ function applySnap(sn){
   for(const m of S.mines)scene.remove(m.mesh);S.mines=[];
   (sn.mines||[]).forEach(m=>{const o=S.players[m.o|0];if(o)placeMine(o,+m.x||0,+m.z||0);});
   S.ropes.forEach(r=>scene.remove(r.line));S.ropes=[];(sn.rp||[]).forEach(r=>{const a=S.players[r.a|0],b=S.players[r.b|0];if(a&&b)addRope(a,b,clamp(r.l|0,1,3));});
-  {S.H.traps=S.H.traps.filter(t=>{if(t.temp!=null){if(t.grp)S.course.remove(t.grp);S.wells=S.wells.filter(w=>w.t!==t);return false;}return true;});(sn.tw||[]).forEach(d=>{const t={type:'well',x:+d.x||0,z:+d.z||0,r:5.5,temp:clamp(d.temp|0,1,3),owner:d.o|0};S.H.traps.push(t);buildTrapVisual(S.course,S.H,t);});(S.H.blocks||[]).forEach((bl,i)=>{const d=!!((sn.bk||[])[i]);bl.dead=d;if(bl.mesh)bl.mesh.visible=!d;});S.treasureFound=!!sn.tf;if(S.holeHidden&&!sn.hh){S.holeHidden=false;S.holeGrp.visible=true;}}
+  {S.H.traps=S.H.traps.filter(t=>{if(t.temp!=null){if(t.grp)S.course.remove(t.grp);S.wells=S.wells.filter(w=>w.t!==t);return false;}return true;});(sn.tw||[]).forEach(d=>{const t={type:'well',x:+d.x||0,z:+d.z||0,r:5.5,temp:clamp(d.temp|0,1,3),owner:d.o|0};S.H.traps.push(t);buildTrapVisual(S.course,S.H,t);});(S.H.blocks||[]).forEach((bl,i)=>{const d=!!((sn.bk||[])[i]);bl.dead=d;if(bl.mesh)bl.mesh.visible=!d;});S.H.walls.forEach((w,i)=>{if((sn.rv||[])[i])revealWall(w,true);});(S.H.traps||[]).forEach((t,i)=>{if((sn.rt||[])[i])revealTrap(t,true);});S.treasureFound=!!sn.tf;if(S.holeHidden&&!sn.hh){S.holeHidden=false;S.holeGrp.visible=true;}}
   S.lastRound=!!sn.lr;S.finishOrder=(sn.fo||[]).map(i=>S.players[i|0]).filter(Boolean);
   {const keep=new Set((sn.pk||[]).map(i=>i|0));for(let k=S.pickups.length-1;k>=0;k--){if(!keep.has(S.pickups[k].id)){scene.remove(S.pickups[k].mesh);S.pickups.splice(k,1);}}}
   S.turnT=TT();
@@ -1445,8 +1457,8 @@ function update(dt,time){
     if(ev.includes('wall'))SFX.wall();
     S.players.forEach(b=>{if(b.hit){burst(b.pos,Math.min(12,3+b.hit|0),0xe8dcc0,0.35);b.hit=0;}
       if(b.blockHit){const bl=b.blockHit;b.blockHit=null;if(bl.mesh&&bl.mesh.visible){bl.mesh.visible=false;burst(V3(bl.x,heightAt(H,bl.x,bl.z)+0.6,bl.z),26,bl.kind==='tree'?0x3fae62:bl.kind==='rock'?0x9c9c94:0xc08a4a,1.2,1.8);SFX.explode();S.shake=0.25;b.pts+=1;toast(`${bl.kind==='tree'?'🌳 كسر شجرة':bl.kind==='rock'?'🪨 حطّم صخرة':'📦 كسر صندوقاً'} ${b.name} وفُتح الطريق! +1★`);}}
-      if(b.hitWall){const w=b.hitWall;b.hitWall=null;if(w.mesh&&!w.mesh.visible){w.mesh.visible=true;S.reveals.push({o:w.mesh,t:2.5});burst(b.pos,14,0xffffff,0.6);toast('👻 جدار مخفي!');}}
-      if(b.trapHit){const t=b.trapHit;b.trapHit=null;if(t.grp&&!t.grp.visible){t.grp.visible=true;S.reveals.push({o:t.grp,t:3});toast('⚠️ فخ مخفي!');}}
+      if(b.hitWall){const w=b.hitWall;b.hitWall=null;revealWall(w);}
+      if(b.trapHit){const t=b.trapHit;b.trapHit=null;revealTrap(t);}
       if(S.holeHidden&&b.spawned&&!b.holed&&Math.hypot(b.pos.x-H.hole.x,b.pos.z-H.hole.z)<12){S.holeHidden=false;S.holeGrp.visible=true;burst(V3(H.hole.x,heightAt(H,H.hole.x,H.hole.z),H.hole.z),26,0xffd23f,1.2);toast('⛳ وُجدت الحفرة المخفية!');}});
     if(ev.includes('portal')){SFX.freeze();toast('🌀 بوابة انتقال!');}
     for(let k=S.reveals.length-1;k>=0;k--){const r=S.reveals[k];r.t-=dt;if(r.t<=0){r.o.visible=false;S.reveals.splice(k,1);}}
