@@ -58,10 +58,16 @@ body{background:var(--sky);color:var(--fg);font-family:var(--font);direction:rtl
 .skinrow canvas{width:46px;height:46px;border-radius:50%;flex:none;border:3px solid transparent;cursor:pointer}
 .skinrow canvas.on{border-color:var(--accent);box-shadow:0 0 0 2px #fff inset}
 #rulesBox.ro{pointer-events:none;opacity:.8}
+.achs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+.ach{background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 10px;font-size:12px;font-weight:600}
+.ach.gold{background:#fff3cc;border-color:var(--accent)}
+.ach.new{background:#ffe3d6;border-color:var(--coral)}
 #inbox{position:fixed;top:calc(140px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:var(--panel-strong);border:2px solid var(--coral);color:var(--fg);padding:10px 16px;border-radius:14px;font-weight:700;font-size:14px;max-width:calc(100% - 40px);text-align:center;z-index:6;box-shadow:var(--shadow);cursor:pointer}
 #inbox small{display:block;color:var(--muted);font-weight:500;font-size:11px;margin-top:4px}
 #msgTo .pl.on{outline:2px solid var(--accent)}
-#menuBtn,#msgBtn,#ovBtn{pointer-events:auto;background:var(--panel);border:0;border-radius:12px;width:40px;height:40px;font-size:18px;cursor:pointer;box-shadow:var(--shadow);flex:none}
+#emoteRow{display:flex;gap:6px;justify-content:center;pointer-events:auto;flex-wrap:wrap}
+#emoteRow button{width:44px;height:44px;border:0;border-radius:12px;background:var(--panel-strong);font-size:22px;cursor:pointer;box-shadow:var(--shadow)}
+#emoteBtn,#menuBtn,#msgBtn,#ovBtn{pointer-events:auto;background:var(--panel);border:0;border-radius:12px;width:40px;height:40px;font-size:18px;cursor:pointer;box-shadow:var(--shadow);flex:none}
 .bottom{display:flex;flex-direction:column;gap:8px;align-items:stretch}
 #hint{text-align:center;font-size:14px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.45);font-weight:700}
 #skills{display:flex;gap:8px;justify-content:center;pointer-events:auto;overflow-x:auto;padding:6px 2px 2px}
@@ -143,10 +149,11 @@ tr.me td{color:#9a6b00;font-weight:700}
     </div>
     <div class="row">
       <div id="players"></div>
-      <div style="display:flex;gap:6px"><button id="menuBtn" type="button" title="القائمة">☰</button><button id="msgBtn" type="button" title="رسالة سرية" class="hidden">💬</button><button id="ovBtn" type="button" title="نظرة علوية">🗺️</button></div>
+      <div style="display:flex;gap:6px"><button id="menuBtn" type="button" title="القائمة">☰</button><button id="emoteBtn" type="button" title="إيموجي">😀</button><button id="msgBtn" type="button" title="رسالة سرية" class="hidden">💬</button><button id="ovBtn" type="button" title="نظرة علوية">🗺️</button></div>
     </div>
   </div>
   <div class="bottom">
+    <div id="emoteRow" class="hidden"></div>
     <div id="hint"></div>
     <button id="skipBtn" class="btn hidden" type="button" style="pointer-events:auto;margin:0 auto;width:auto;padding:10px 18px;font-size:15px">⏭️ تخطي دور اللاعب المنتظر</button>
     <div id="skills"></div>
@@ -160,7 +167,7 @@ tr.me td{color:#9a6b00;font-weight:700}
 
 <div id="start" class="overlay">
   <div class="card">
-    <h1>غولف الاندفاع <small style="font-size:12px;color:var(--muted);font-weight:500">الإصدار 27</small></h1>
+    <h1>غولف الاندفاع <small style="font-size:12px;color:var(--muted);font-weight:500">الإصدار 30</small></h1>
     <p>اسحب كرتك للخلف كالمقلاع واتركها لتنطلق نحو الحفرة. أول من يُدخلها يأخذ أكبر النقاط ويفتح «الجولة الأخيرة»: ضربة واحدة للبقية. المهارات لا تبدأ معك: اصطدم بالصناديق المجهولة ❓ لتحصل على واحدة من 12 مهارة عشوائية، منها الحبل الذي يربط خصمين معاً واللعنة التي تحرف ضربة خصمك. احذر الفخاخ: رمل، قافز، عارضة دوّارة، مروحة، ثقب جاذب، وأشواك. اصدم الخصوم وازرع الألغام لتكسب نقاطاً. لكل مرحلة حدث عشوائي وكنز مخفي وعوائق تُكسر بأول لمسة لتفتح الطريق، ومستوى «جحيم» يخفي الفخاخ والجدران والحفرة. الفيزياء رياضية: القوة تساوي مسافة التوقف بالضبط، والكرة ترتد عن الجدران بزاوية انعكاس مساوية لزاوية السقوط وبلا فقدان للسرعة.</p>
     <div class="tabs" id="modeTabs">
       <button type="button" data-m="solo" class="on">🤖 ضد الكمبيوتر</button>
@@ -228,6 +235,8 @@ tr.me td{color:#9a6b00;font-weight:700}
   <div class="card">
     <h2 id="boardTitle">نتيجة الحفرة</h2>
     <table><thead><tr><th>اللاعب</th><th style="text-align:center">الحفرة: ضربات / نقاط</th><th style="text-align:center">النقاط (الضربات)</th></tr></thead><tbody id="boardBody"></tbody></table>
+    <div id="achievements" class="achs hidden"></div>
+    <button class="btn hidden" id="rematchBtn" type="button" style="margin-bottom:8px">🔁 إعادة المباراة بنفس اللاعبين</button>
     <button class="btn" id="nextBtn" type="button">الحفرة التالية</button>
   </div>
 </div>
@@ -405,11 +414,11 @@ function physStep(b,H,dt,ev){
     b.pos.x+=b.vel.x*dt; b.pos.z+=b.vel.z*dt;
     b.pos.y=heightAt(H,b.pos.x,b.pos.z);
   }
-  if(b.portalCd)b.portalCd=Math.max(0,b.portalCd-dt);
+  if(b.portalCd)b.portalCd=Math.max(0,b.portalCd-dt);if(b.bumpCd)b.bumpCd=Math.max(0,b.bumpCd-dt);
   if(H.traps)for(const t of H.traps){
     if(b.ignoreHidden&&t.grp&&!t.grp.visible)continue;
     if(t.type==='sand'){}
-    else if(t.type==='bump'){if(b.pos.y<heightAt(H,t.x,t.z)+1.0){let dx=b.pos.x-t.x,dz=b.pos.z-t.z;const d=Math.hypot(dx,dz),m=t.r+R;if(d<m&&d>1e-6){dx/=d;dz/=d;b.pos.x+=dx*(m-d);b.pos.z+=dz*(m-d);b.vel.set(dx*13,6,dz*13);b.air=true;b.trapHit=t;if(ev)ev.push('bump');}}}
+    else if(t.type==='bump'){if(b.pos.y<heightAt(H,t.x,t.z)+1.0){let dx=b.pos.x-t.x,dz=b.pos.z-t.z;const d=Math.hypot(dx,dz),m=t.r+R;if(d<m&&d>1e-6){dx/=d;dz/=d;b.pos.x+=dx*(m-d);b.pos.z+=dz*(m-d);b.trapHit=t;if(!b.bumpCd&&(b.bumpN||0)<3){b.vel.set(dx*13,6,dz*13);b.air=true;b.bumpCd=1.2;b.bumpN=(b.bumpN||0)+1;if(ev)ev.push('bump');}else{const vn=b.vel.x*dx+b.vel.z*dz;if(vn<0){b.vel.x-=2*vn*dx;b.vel.z-=2*vn*dz;}}}}}
     else if(t.type==='wind'){}
     else if(t.type==='well'){const wx=t.x-b.pos.x,wz=t.z-b.pos.z;const wd=Math.hypot(wx,wz);if(!b.air&&wd<0.7&&Math.hypot(b.vel.x,b.vel.z)<3){b.wet=true;b.wetT=0;b.vel.set(0,0,0);if(ev)ev.push('well');}}
     else if(t.type==='spikes'){const per=t.period/(H.spinScale||1);const up=(((H.t||0)%per)+per)%per<per*0.5;if(up&&!b.air&&Math.abs(b.pos.x-t.x)<t.w/2+R&&Math.abs(b.pos.z-t.z)<t.l/2+R){const sp=Math.hypot(b.vel.x,b.vel.z)||1;const ux=t.w>t.l?0:(b.pos.x<t.x?-1:1),uz=t.w>t.l?(b.pos.z<t.z?-1:1):0;b.vel.set(ux*Math.max(6,sp*0.8),5,uz*Math.max(6,sp*0.8));b.air=true;b.pos.x+=ux*0.3;b.pos.z+=uz*0.3;b.trapHit=t;if(!b.spikeHit){b.spikeHit=true;if(ev)ev.push('spike');}}}
@@ -834,7 +843,7 @@ function makePlayers(list){
     const color=COLORS[k%COLORS.length];
     const model=makeCharacter(color,d.skin||SKINS[(k*3+1)%SKINS.length]);scene.add(model.g);
     const label=labelSprite(d.name,hex(color));scene.add(label);
-    S.players.push({id:k,name:d.name,color,kind:d.kind,peer:d.peer||null,pos:V3(),vel:V3(),vis:V3(),air:false,holed:false,sunk:false,wet:false,strokes:0,total:0,pts:0,frozen:false,shield:false,shieldRounds:0,finalShot:false,spawned:false,sk:SKILL_ZERO(),model,label,lastRest:V3()});
+    S.players.push({id:k,name:d.name,color,kind:d.kind,peer:d.peer||null,pos:V3(),vel:V3(),vis:V3(),air:false,holed:false,sunk:false,wet:false,strokes:0,total:0,pts:0,st:{bumps:0,treasure:0,aces:0,skills:0,sabotage:0},frozen:false,shield:false,shieldRounds:0,finalShot:false,spawned:false,sk:SKILL_ZERO(),model,label,lastRest:V3()});
   });
 }
 function startSolo(){S.mode='solo';S.seed=Math.floor(Math.random()*1e6);makePlayers([{name:'أنت',kind:'human',skin:mySkin()},...BOT_NAMES.slice(0,botCount).map(n=>({name:n,kind:'bot'}))]);beginGame();}
@@ -876,8 +885,9 @@ function nextTurn(){
   p.lastRest=p.pos.clone();
   S.state='aim';S.armed.power=S.armed.jump=S.armed.magnet=S.armed.ghost=S.armed.warp=S.armed.giant=false;
   S.camYaw=Math.atan2(S.H.hole.x-p.pos.x,S.H.hole.z-p.pos.z);
+  S.remoteAck=false;S.remoteWait=0;if(S.mode==='online'&&NET.room&&p.kind==='human'){try{NET.room.emit('turn',{id:p.id,hole:S.hole});}catch(e){}}
   updateHUD();
-  if(p.kind==='bot')setTimeout(()=>botTurn(p,false),900);
+  if(p.kind==='bot')setTimeout(()=>botTurn(p,false),S.autoplay?150:900);
 }
 
 // Actions go through here so online play can broadcast them.
@@ -912,9 +922,9 @@ function shoot(p,dx,dz,pw){
 }
 
 function onAllStopped(){
-  if(S.H&&S.H.treasure&&!S.treasureFound){const T=S.H.treasure;const f=S.players.find(b=>b.spawned&&!b.holed&&Math.hypot(b.pos.x-T.x,b.pos.z-T.z)<2.2);if(f){S.treasureFound=true;f.pts+=3;burst(V3(T.x,heightAt(S.H,T.x,T.z),T.z),40,0xffd23f,1.6,2.5);SFX.holed();toast(`💎 ${f.name} اكتشف الكنز المخفي! +3★`);const ch=new THREE.Mesh(new THREE.BoxGeometry(1,0.7,0.7),new THREE.MeshStandardMaterial({color:0xffd23f,emissive:0xaa7700,emissiveIntensity:0.5}));ch.position.set(T.x,heightAt(S.H,T.x,T.z)+0.35,T.z);S.course.add(ch);updateHUD();}}
-  S.players.forEach(p=>{if(!p.holed)p.lastRest=p.pos.clone();p.magnet=false;p.ghost=false;p.warp=false;p.giant=false;p.spikeHit=false;p.spikeDone=false;p.combo=0;});
-  if(S.pendingShot){S.pendingShot=false;S.state='aim';S.turnT=TT();const p=cur();S.camYaw=Math.atan2(S.H.hole.x-p.pos.x,S.H.hole.z-p.pos.z);updateHUD();if(p.kind==='bot')setTimeout(()=>botTurn(p,true),600);return;}
+  if(S.H&&S.H.treasure&&!S.treasureFound){const T=S.H.treasure;const f=S.players.find(b=>b.spawned&&!b.holed&&Math.hypot(b.pos.x-T.x,b.pos.z-T.z)<2.2);if(f){S.treasureFound=true;f.pts+=3;f.st.treasure++;burst(V3(T.x,heightAt(S.H,T.x,T.z),T.z),40,0xffd23f,1.6,2.5);SFX.holed();toast(`💎 ${f.name} اكتشف الكنز المخفي! +3★`);const ch=new THREE.Mesh(new THREE.BoxGeometry(1,0.7,0.7),new THREE.MeshStandardMaterial({color:0xffd23f,emissive:0xaa7700,emissiveIntensity:0.5}));ch.position.set(T.x,heightAt(S.H,T.x,T.z)+0.35,T.z);S.course.add(ch);updateHUD();}}
+  S.players.forEach(p=>{if(!p.holed)p.lastRest=p.pos.clone();p.magnet=false;p.ghost=false;p.warp=false;p.giant=false;p.spikeHit=false;p.spikeDone=false;p.combo=0;p.bumpN=0;});
+  if(S.pendingShot){S.pendingShot=false;S.state='aim';S.turnT=TT();S.remoteAck=false;S.remoteWait=0;const p=cur();if(S.mode==='online'&&NET.room&&p.kind==='human'){try{NET.room.emit('turn',{id:p.id,hole:S.hole});}catch(e){}}S.camYaw=Math.atan2(S.H.hole.x-p.pos.x,S.H.hole.z-p.pos.z);updateHUD();if(p.kind==='bot')setTimeout(()=>botTurn(p,true),600);return;}
   nextTurn();
 }
 
@@ -926,15 +936,22 @@ function endHole(){
   $('#boardTitle').textContent=last?'النتيجة النهائية':`نتيجة الحفرة ${S.hole+1}: ${S.H.name}`;
   const rows=[...S.players].sort((a,b)=>(b.pts-a.pts)||(a.total-b.total));
   $('#boardBody').innerHTML=rows.map((p,i)=>`<tr class="${p.kind==='human'&&S.mode!=='local'?'me':''}"><td>${last?['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'][i]+' ':''}${p.name}</td><td class="num">${p.holed?p.strokes:'✗'} <small style="color:var(--muted)">+${p.holePts}★</small></td><td class="num">${p.pts}★ <small style="color:var(--muted)">(${p.total})</small></td></tr>`).join('');
+  const ach=$('#achievements');if(last){const pick=(fn,label,icon)=>{let best=null,bv=0;S.players.forEach(p=>{const v=fn(p);if(v>bv){bv=v;best=p;}});return best?`<span class="ach">${icon} ${label}: <b>${best.name}</b> (${bv})</span>`:'';};
+    const champ=rows[0];const me=S.players.find(p=>p.kind==='human');let bestTxt='';
+    if(me){try{const prev=JSON.parse(localStorage.getItem('golf-best')||'null');if(!prev||me.pts>prev.pts){localStorage.setItem('golf-best',JSON.stringify({pts:me.pts,strokes:me.total,d:Date.now()}));bestTxt=`<span class="ach new">🏅 رقم قياسي جديد لك: ${me.pts}★</span>`;}else bestTxt=`<span class="ach">🏅 أفضل نتيجة لك: ${prev.pts}★</span>`;}catch(e){}}
+    ach.innerHTML=`<span class="ach gold">🏆 البطل: <b>${champ.name}</b></span>`+pick(p=>p.st.bumps,'المخرّب','💥')+pick(p=>p.st.sabotage,'الماكر','🕵️')+pick(p=>p.st.treasure,'صائد الكنوز','💎')+pick(p=>p.st.aces,'القناص','🎯')+pick(p=>p.st.skills,'الساحر','✨')+bestTxt;ach.classList.remove('hidden');}
+  else ach.classList.add('hidden');
+  $('#rematchBtn').classList.toggle('hidden',!(last&&S.mode==='online'&&isHostNow()));
   $('#nextBtn').textContent=last?(S.mode==='online'?'العودة للغرفة':'العب مجدداً'):'الحفرة التالية';
   $('#nextBtn').classList.toggle('hidden',S.mode==='online'&&!last);
   $('#board').classList.remove('hidden');
   if(S.mode==='online'&&!last){clearTimeout(S.autoNext);S.autoNext=setTimeout(()=>{if(S.state==='board'){$('#board').classList.add('hidden');loadHole(S.hole+1);}},5000);}
 }
+$('#rematchBtn').addEventListener('click',()=>{$('#board').classList.add('hidden');S.players.forEach(p=>{p.total=0;p.pts=0;p.sk=SKILL_ZERO();p.st={bumps:0,treasure:0,aces:0,skills:0,sabotage:0};});const data={players:S.players.map(p=>({peer:p.peer,name:p.name,skin:p.model?undefined:undefined})),rules:S.rules,seed:Math.floor(Math.random()*1e6)};data.players=seats().map(p=>({peer:p.peer,name:String(p.presence.name).slice(0,14),skin:SKINS.includes(p.presence.skin)?p.presence.skin:'classic'}));if(!data.players.length)return;NET.room.emit('start',data).catch(()=>{});onNetStart(data);});
 $('#nextBtn').addEventListener('click',()=>{
   $('#board').classList.add('hidden');
   if(S.hole===holeCount-1){
-    S.players.forEach(p=>{p.total=0;p.pts=0;p.sk=SKILL_ZERO();});
+    S.players.forEach(p=>{p.total=0;p.pts=0;p.sk=SKILL_ZERO();p.st={bumps:0,treasure:0,aces:0,skills:0,sabotage:0};});
     S.state='start';
     if(S.mode==='online'){$('#lobby').classList.remove('hidden');renderLobby();}else{$('#start').classList.remove('hidden');}
     return;
@@ -945,6 +962,7 @@ $('#nextBtn').addEventListener('click',()=>{
 // ---------- skills & sabotage ----------
 function useSkill(p,key,target,r){
   if(p.sk[key]<=0)return false;
+  if(key!=='power'&&key!=='jump'&&key!=='magnet'&&key!=='ghost'&&key!=='warp'&&key!=='giant'){p.st.skills++;if(target||key==='quake'||key==='mine')p.st.sabotage++;}
   if(key==='steal'&&target){p.sk.steal--;const ks=Object.keys(SKILL_MAX).filter(k=>target.sk[k]>0&&k!=='steal');if(!ks.length){toast(`${target.name} لا يملك مهارات لسرقتها`);updateHUD();return true;}if(target.shield){target.shield=false;target.shieldRounds=0;target.model.shield.visible=false;toast(`درع ${target.name} صدّ السرقة`);updateHUD();return true;}const k=ks[Math.floor((r==null?Math.random():r)*ks.length)%ks.length];target.sk[k]--;if(p.sk[k]<SKILL_MAX[k])p.sk[k]++;burst(target.pos,16,0x333a44,0.7);toast(`🕵️ ${p.name} سرق ${SKILLS[k].name} من ${target.name}`);updateHUD();return true;}
   if(key==='hole'){p.sk.hole--;const t={type:'well',x:p.pos.x,z:p.pos.z,r:5.5,temp:3,owner:p.id};S.H.traps.push(t);buildTrapVisual(S.course,S.H,t);burst(p.pos,20,0x8e44ad,0.9);toast(`🕳️ ${p.name} فتح ثقباً جاذباً لثلاث جولات`);updateHUD();return true;}
   if(key==='power'||key==='jump'||key==='magnet'||key==='ghost'||key==='warp'||key==='giant'){S.armed[key]=!S.armed[key];if(key==='power'&&S.armed.power)S.armed.jump=false;if(key==='jump'&&S.armed.jump)S.armed.power=false;updateHUD();return true;}
@@ -962,6 +980,11 @@ function useSkill(p,key,target,r){
   if(key==='shove'){const a=(r==null?Math.random():r)*Math.PI*2;target.vel.set(Math.cos(a)*7,0,Math.sin(a)*7);S.shotBy=target;S.pendingShot=true;S.state='moving';S.stopTimer=0;S.acc=0;toast(`${p.name} دفع ${target.name} 👊`);updateHUD();return 'moved';}
   return false;
 }
+const emoteCache={};
+function emoteSprite(e){if(!emoteCache[e]){const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');g.font='96px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(e,64,70);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;emoteCache[e]=t;}const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:emoteCache[e],depthTest:false,transparent:true}));sp.scale.set(1.3,1.3,1);sp.renderOrder=7;return sp;}
+function showEmote(p,e){if(!p||!p.model)return;const sp=emoteSprite(e);sp.position.set(p.model.g.position.x,p.pos.y+2.1,p.model.g.position.z);scene.add(sp);S.fx.push({mesh:sp,t:0,life:2.2,emote:true,p});}
+const EMOTES=['😂','😎','😡','😱','👏','🔥','💀','🙏'];
+function sendEmote(e){const me=S.players.find(p=>p.kind==='human');if(me)showEmote(me,e);if(S.mode==='online'&&NET.room){NET.room.emit('emote',{e}).catch(()=>{});}$('#emoteRow').classList.add('hidden');}
 function placeMine(p,x,z){
   const m=new THREE.Group();
   const body=new THREE.Mesh(new THREE.SphereGeometry(0.24,12,10),new THREE.MeshLambertMaterial({color:0x222222}));body.position.y=0.2;body.castShadow=true;m.add(body);
@@ -1047,7 +1070,7 @@ function updateHUD(){
   {const owner=(p&&p.kind==='human')?p:(S.mode==='local'?null:S.players.find(q=>q.kind==='human'));
    const keys=owner?Object.keys(SKILLS).filter(k=>owner.sk[k]>0):[];
    $('#skills').innerHTML=keys.length?keys.map(k=>`<button type="button" class="sk ${S.armed[k]?'armed':''}" data-k="${k}" ${!mine?'disabled':''}><span class="ic">${SKILLS[k].icon}</span>${SKILLS[k].name}<span class="n">${owner.sk[k]}</span></button>`).join(''):(owner?'<div class="nosk">لا مهارات بعد · اصطدم بالصناديق ❓ لتكسبها</div>':'');}
-  $('#hint').textContent=S.state==='aim'?(mine?(S.overview?'أغلق النظرة العلوية ثم اسحب للتسديد':'اضغط على الكرة واسحب للخلف للتسديد · اسحب الشاشة لتدوير الكاميرا'):`${p?p.name:''} ${p&&p.kind==='remote'?'يسدد الآن…':'يستعد للتسديد…'}`):'';
+  $('#hint').textContent=S.state==='aim'?(mine?(S.overview?'أغلق النظرة العلوية ثم اسحب للتسديد':'اضغط على الكرة واسحب للخلف للتسديد · اسحب الشاشة لتدوير الكاميرا'):`${p?p.name:''} ${p&&p.kind==='remote'?(S.remoteAck?'يسدد الآن…':'بانتظار جهازه…'):'يستعد للتسديد…'}`):'';
   $('#tut').classList.toggle('on',mine&&!S.overview&&S.shots===0&&!S.drag);
   $('#msgBtn').classList.toggle('hidden',!NET.room);
   if(!(p&&p.kind==='remote'&&S.state==='aim'))$('#skipBtn').classList.add('hidden');
@@ -1085,6 +1108,7 @@ $('#diffSeg').addEventListener('click',e=>{const b=e.target.closest('button');if
 $('#ttSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.rules.turnTime=+b.dataset.v;renderRules();broadcastRules();});
 $('#mapGrid').addEventListener('click',e=>{const b=e.target.closest('.mchip');if(!b)return;const i=+b.dataset.i;const k=S.rules.maps.indexOf(i);if(k>=0)S.rules.maps.splice(k,1);else S.rules.maps.push(i);renderRules();broadcastRules();});
 moveRules('#rulesSlotSolo');
+{const q=new URLSearchParams(location.search);if(q.get('auto')==='1'){const d=q.get('diff');if(['normal','hard','insane'].includes(d))S.rules.diff=d;const m=(q.get('maps')||'').split(',').map(x=>+x).filter(x=>x>=0&&x<HOLES.length);if(m.length)S.rules.maps=m;S.autoplay=true;window.__errs=[];window.addEventListener('error',e=>window.__errs.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__errs.push('rej:'+String(e.reason&&e.reason.message||e.reason)));setTimeout(()=>{S.mode='solo';S.seed=7;makePlayers([{name:'أنت',kind:'bot',skin:mySkin()},...BOT_NAMES.slice(0,3).map(n=>({name:n,kind:'bot'}))]);beginGame();},800);}}
 $('#modeTabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;[...$('#modeTabs').children].forEach(x=>x.classList.toggle('on',x===b));const m=b.dataset.m;$('#paneSolo').classList.toggle('hidden',m!=='solo');$('#paneLocal').classList.toggle('hidden',m!=='local');$('#paneOnline').classList.toggle('hidden',m!=='online');if(m==='solo')moveRules('#rulesSlotSolo');if(m==='local')moveRules('#rulesSlotLocal');});
 $('#startSolo').addEventListener('click',startSolo);
 $('#startLocal').addEventListener('click',startLocal);
@@ -1151,6 +1175,8 @@ async function enterRoom(code,isHost){
     NET.unsub.push(r.on('start',m=>{if(m.sameTab)return;onNetStart(m.data);}));
     NET.unsub.push(r.on('act',m=>{if(m.sameTab)return;onNetAct(m.data);}));
     NET.unsub.push(r.on('msg',m=>{if(m.sameTab)return;onNetMsg(m);}));
+    NET.unsub.push(r.on('emote',m=>{if(m.sameTab)return;const q=S.players.find(x=>x.peer===m.peer);const e=String((m.data||{}).e||'');if(q&&EMOTES.includes(e))showEmote(q,e);}));
+    NET.unsub.push(r.on('turn',m=>{if(m.sameTab)return;const d=m.data||{};const q=S.players[d.id|0];if(q&&q.peer===m.peer&&S.cur>=0&&cur()===q&&q.kind==='remote'){S.remoteAck=true;S.turnT=TT();}}));
     NET.unsub.push(r.on('rules',m=>{if(m.sameTab)return;const l=seats();if(l[0]&&l[0].peer===m.peer){S.rules=sanitizeRules(m.data);renderRules();}}));
     await r.presence({name:name.slice(0,14),at:Date.now(),v:1,skin:mySkin()});
     $('#lobbyCode').textContent=code;
@@ -1210,6 +1236,8 @@ function goHome(){clearTimeout(S.autoNext);['#menu','#board','#picker','#msgBox'
   S.players.forEach(q=>{q.model.g.visible=false;q.label.visible=false;});S.ropes.forEach(r=>scene.remove(r.line));S.ropes=[];S.drag=null;S.botPull=null;S.state='start';S.cur=-1;S.mode='solo';
   $('#start').classList.remove('hidden');updateHUD();}
 $('#menuBtn').addEventListener('click',openMenu);
+$('#emoteRow').innerHTML=EMOTES.map(e=>`<button type="button" data-e="${e}">${e}</button>`).join('');$('#emoteRow').addEventListener('click',e=>{const b=e.target.closest('button');if(b)sendEmote(b.dataset.e);});
+$('#emoteBtn').addEventListener('click',()=>$('#emoteRow').classList.toggle('hidden'));
 $('#skipBtn').addEventListener('click',()=>{$('#skipBtn').classList.add('hidden');S.turnT=999;forceSkipRemote();});
 $('#menuResume').addEventListener('click',()=>$('#menu').classList.add('hidden'));
 $('#menuMsg').addEventListener('click',()=>{$('#menu').classList.add('hidden');openMsgBox();});
@@ -1227,7 +1255,7 @@ function onNetStart(data){
   beginGame();
 }
 function makeSnap(){
-  return {hole:S.hole,cur:S.cur,players:S.players.map(p=>({x:+p.pos.x.toFixed(3),z:+p.pos.z.toFixed(3),s:p.strokes,t:p.total,p:p.pts,sp:p.spawned?1:0,cu:p.cursed?1:0,h:p.holed?1:0,f:p.frozen?1:0,sh:p.shield?1:0,sr:p.shieldRounds,fs:p.finalShot?1:0,sk:p.sk})),mines:S.mines.map(m=>({o:m.owner.id,x:+m.pos.x.toFixed(2),z:+m.pos.z.toFixed(2)})),lr:S.lastRound?1:0,fo:S.finishOrder.map(p=>p.id),pk:S.pickups.map(u=>u.id),rp:S.ropes.map(r=>({a:r.a.id,b:r.b.id,l:r.left})),ht:+((S.H&&S.H.t)||0).toFixed(3),tw:(S.H.traps||[]).filter(t=>t.temp!=null).map(t=>({x:+t.x.toFixed(2),z:+t.z.toFixed(2),o:t.owner,temp:t.temp})),tf:S.treasureFound?1:0,hh:S.holeHidden?1:0,bk:(S.H.blocks||[]).map(b=>b.dead?1:0)};
+  return {hole:S.hole,cur:S.cur,players:S.players.map(p=>({x:+p.pos.x.toFixed(3),z:+p.pos.z.toFixed(3),s:p.strokes,t:p.total,p:p.pts,sp:p.spawned?1:0,cu:p.cursed?1:0,st:[p.st.bumps,p.st.treasure,p.st.aces,p.st.skills,p.st.sabotage],h:p.holed?1:0,f:p.frozen?1:0,sh:p.shield?1:0,sr:p.shieldRounds,fs:p.finalShot?1:0,sk:p.sk})),mines:S.mines.map(m=>({o:m.owner.id,x:+m.pos.x.toFixed(2),z:+m.pos.z.toFixed(2)})),lr:S.lastRound?1:0,fo:S.finishOrder.map(p=>p.id),pk:S.pickups.map(u=>u.id),rp:S.ropes.map(r=>({a:r.a.id,b:r.b.id,l:r.left})),ht:+((S.H&&S.H.t)||0).toFixed(3),tw:(S.H.traps||[]).filter(t=>t.temp!=null).map(t=>({x:+t.x.toFixed(2),z:+t.z.toFixed(2),o:t.owner,temp:t.temp})),tf:S.treasureFound?1:0,hh:S.holeHidden?1:0,bk:(S.H.blocks||[]).map(b=>b.dead?1:0)};
 }
 function applySnap(sn){
   if(!sn||!Array.isArray(sn.players)||sn.players.length!==S.players.length)return false;
@@ -1238,7 +1266,7 @@ function applySnap(sn){
   S.players.forEach((p,i)=>{const d=sn.players[i];const wasVis=p.model.g.visible&&p.spawned&&!p.holed;const ox=p.model.g.position.x,oz=p.model.g.position.z;
     p.pos.set(+d.x||0,0,+d.z||0);p.pos.y=heightAt(S.H,p.pos.x,p.pos.z);p.vel.set(0,0,0);p.air=false;p.wet=false;p.prev=null;
     if(wasVis&&!!d.sp&&!d.h){p.vis.set(ox-p.pos.x,0,oz-p.pos.z);if(p.vis.length()>14)p.vis.set(0,0,0);}else p.vis.set(0,0,0);
-    p.strokes=d.s|0;p.total=d.t|0;p.pts=d.p|0;p.spawned=!!d.sp;p.cursed=!!d.cu;p.popT=null;p.finalShot=!!d.fs;p.holed=!!d.h;p.sunk=p.holed;p.frozen=!!d.f;p.shield=!!d.sh;p.shieldRounds=d.sr|0;
+    p.strokes=d.s|0;p.total=d.t|0;p.pts=d.p|0;p.spawned=!!d.sp;p.cursed=!!d.cu;if(Array.isArray(d.st)){p.st.bumps=d.st[0]|0;p.st.treasure=d.st[1]|0;p.st.aces=d.st[2]|0;p.st.skills=d.st[3]|0;p.st.sabotage=d.st[4]|0;}p.popT=null;p.finalShot=!!d.fs;p.holed=!!d.h;p.sunk=p.holed;p.frozen=!!d.f;p.shield=!!d.sh;p.shieldRounds=d.sr|0;
     if(d.sk&&typeof d.sk==='object')for(const k in SKILL_MAX)p.sk[k]=clamp(d.sk[k]|0,0,SKILL_MAX[k]);
     p.model.g.visible=!p.holed&&p.spawned;p.model.g.scale.set(1,1,1);p.model.ice.visible=p.frozen;p.model.shield.visible=p.shield;p.lastRest=p.pos.clone();
   });
@@ -1326,7 +1354,7 @@ function stepWorld(h,ev){
     let dx=b.pos.x-a.pos.x,dz=b.pos.z-a.pos.z;const d=Math.hypot(dx,dz);
     if(d<2*R&&d>1e-6){dx/=d;dz/=d;const pen=2*R-d;a.pos.x-=dx*pen/2;a.pos.z-=dz*pen/2;b.pos.x+=dx*pen/2;b.pos.z+=dz*pen/2;
       const va=a.vel.x*dx+a.vel.z*dz,vb=b.vel.x*dx+b.vel.z*dz;
-      if(va-vb>0.3){const ma=a.giant?3:1,mb=b.giant?3:1;const jv=1.8*(vb-va)/(ma+mb);const ja=jv*mb,jb=jv*ma;a.vel.x+=ja*dx;a.vel.z+=ja*dz;b.vel.x-=jb*dx;b.vel.z-=jb*dz;const hitter=Math.abs(va)>Math.abs(vb)?a:b,victim=hitter===a?b:a;if(hitter===S.shotBy&&!victim.bumpedThisShot){victim.bumpedThisShot=true;hitter.pts+=1;hitter.combo=(hitter.combo||0)+1;burst(victim.pos,14,0xffffff,0.8);SFX.bump();if(hitter.combo>=2){hitter.pts+=2;toast(`🔥 ${hitter.name} صدم ${victim.name} أيضاً! +3★`);}else toast(`${hitter.name} صدم ${victim.name}! 💥 +1★`);}}
+      if(va-vb>0.3){const ma=a.giant?3:1,mb=b.giant?3:1;const jv=1.8*(vb-va)/(ma+mb);const ja=jv*mb,jb=jv*ma;a.vel.x+=ja*dx;a.vel.z+=ja*dz;b.vel.x-=jb*dx;b.vel.z-=jb*dz;const hitter=Math.abs(va)>Math.abs(vb)?a:b,victim=hitter===a?b:a;if(hitter===S.shotBy&&!victim.bumpedThisShot){victim.bumpedThisShot=true;hitter.pts+=1;hitter.st.bumps++;hitter.combo=(hitter.combo||0)+1;if(hitter.kind==='bot')showEmote(hitter,'😈');if(victim.kind==='bot')showEmote(victim,'😡');burst(victim.pos,14,0xffffff,0.8);SFX.bump();if(hitter.combo>=2){hitter.pts+=2;toast(`🔥 ${hitter.name} صدم ${victim.name} أيضاً! +3★`);}else toast(`${hitter.name} صدم ${victim.name}! 💥 +1★`);}}
     }
   }
   for(const rp of S.ropes){const a=rp.a,b=rp.b;if(a.holed||b.holed||!a.spawned||!b.spawned||a.wet||b.wet)continue;
@@ -1376,7 +1404,7 @@ window.addEventListener('resize',resize);applyQuality(Q.level,true);
 let last=performance.now();
 function frame(now){
   requestAnimationFrame(frame);
-  const dt=Math.min(0.05,(now-last)/1000);last=now;
+  const raw=(now-last)/1000;const dt=Math.min(0.05,raw);S.rawDt=Math.min(0.35,Math.max(0,raw));last=now;
   if(S.H){update(dt,now/1000);
     Q.fpsT+=dt;Q.fpsN++;if(Q.fpsT>=4){const fps=Q.fpsN/Q.fpsT;Q.fpsT=0;Q.fpsN=0;
       if(fps<28&&Q.level!=='low'&&Q.cool<=0){applyQuality(Q.level==='high'?'medium':'low',true);toast('⚙️ خُفّضت الجودة تلقائياً لتعمل اللعبة بسلاسة');Q.cool=3;}else if(Q.cool>0)Q.cool--;}}
@@ -1406,9 +1434,9 @@ function update(dt,time){
   if(S.state==='wait'){S.waitT=(S.waitT||0)+dt;if(S.waitT>4){S.waitT=0;nextTurn();}}else S.waitT=0;
   if(S.state==='aim'&&S.cur>=0){S.aimT=(S.aimT||0)+dt;const cp=cur();if(cp.kind==='bot'&&!S.botPull&&S.aimT>7){S.aimT=0;botAim(cp);}}
   if(S.state==='moving'||S.state==='aim'||S.state==='wait'){
-    const ev=[];S.acc+=dt;let n=0;
-    while(S.acc>=STEP&&n<10){S.players.forEach(b=>{if(!b.prev)b.prev=V3();b.prev.copy(b.pos);});stepWorld(STEP,ev);S.acc-=STEP;n++;}
-    if(ev.includes('holed')){S.players.forEach(b=>{if(b.holed&&!b.sunk&&!b.announced){b.announced=true;S.finishOrder.push(b);SFX.holed();[0xffd23f,0xff7a9a,0x7cd8ff,0x5ee68f].forEach(c=>burst(b.pos,12,c,1.4,2.2));toast(`⛳ ${b.name} أدخلها بـ ${b.strokes} ${b.strokes===1?'ضربة':'ضربات'}!`);
+    const ev=[];S.acc+=(S.rawDt!=null?S.rawDt:dt);let n=0;
+    while(S.acc>=STEP&&n<48){S.players.forEach(b=>{if(!b.prev)b.prev=V3();b.prev.copy(b.pos);});stepWorld(STEP,ev);S.acc-=STEP;n++;}
+    if(ev.includes('holed')){S.players.forEach(b=>{if(b.holed&&!b.sunk&&!b.announced){b.announced=true;S.finishOrder.push(b);if(b.strokes===1)b.st.aces++;showEmote(b,b.strokes===1?'🤩':'😎');SFX.holed();[0xffd23f,0xff7a9a,0x7cd8ff,0x5ee68f].forEach(c=>burst(b.pos,12,c,1.4,2.2));toast(`⛳ ${b.name} أدخلها بـ ${b.strokes} ${b.strokes===1?'ضربة':'ضربات'}!`);
       if(!S.lastRound){S.lastRound=true;S.players.forEach(q=>{if(!q.holed)q.finalShot=true;});setTimeout(()=>toast('🔥 الجولة الأخيرة: ضربة واحدة لكل لاعب!'),1500);}}});}
     if(ev.includes('bump')&&!S.bumpToast){S.bumpToast=true;toast('🔴 قافز! انطلقت الكرة');S.shake=0.35;SFX.bump();setTimeout(()=>S.bumpToast=false,1500);}
     if(ev.includes('spike')){S.players.forEach(b=>{if(b.spikeHit&&!b.spikeDone){b.spikeDone=true;b.strokes++;burst(b.pos,16,0xff4040,1.0);S.shake=0.4;SFX.spike();toast(`🔺 ${b.name} صدمته الأشواك: +1 ضربة`);}});}
@@ -1439,7 +1467,7 @@ function update(dt,time){
   let ropeOn=false,ropeP=null,ropeDir=null;
   if(d&&S.state==='aim'){const p=cur();p.vis.set(-d.dx*d.pw*1.6,0,-d.dz*d.pw*1.6);
     ropeOn=!d.dead;ropeP=p;ropeDir=[d.dx,d.dz];
-    if(ropeOn){const r=simShot(H,p,d.dx,d.dz,Math.max(0.08,d.pw),5.5,S.armed.jump,S.armed.power,true,null,S.armed.magnet,S.armed.ghost);drawPath(r.pts);pathMesh.visible=r.pts.length>1;const last=r.pts[r.pts.length-1];if(last){stopMark.visible=true;stopMark.position.set(last.x,last.y+0.06,last.z);}else stopMark.visible=false;
+    if(ropeOn){const r=simShot(H,p,d.dx,d.dz,Math.max(0.08,d.pw),5.5,S.armed.jump,S.armed.power,true,null,S.armed.magnet,S.armed.ghost);{const lim=clamp(0.45*Math.max(0.08,d.pw)*MAX_DIST,6,20);let acc=0;const cutPts=[];for(let i=0;i<r.pts.length;i++){if(i>0)acc+=Math.hypot(r.pts[i].x-r.pts[i-1].x,r.pts[i].z-r.pts[i-1].z);if(acc>lim)break;cutPts.push(r.pts[i]);}drawPath(cutPts);pathMesh.visible=cutPts.length>1;stopMark.visible=false;}
       protractor.visible=true;protractor.position.set(p.pos.x,p.pos.y+0.05,p.pos.z);
       arrowGroup.visible=true;arrowGroup.position.set(p.pos.x,p.pos.y+0.06,p.pos.z);arrowGroup.rotation.y=Math.atan2(d.dx,d.dz);arrow.scale.set(1,1.4+d.pw*4.5,1);arrowMat.color.setHSL(0.33-d.pw*0.33,0.9,0.6);}
     else{pathMesh.visible=false;stopMark.visible=false;arrowGroup.visible=false;protractor.visible=false;}
@@ -1473,18 +1501,19 @@ function update(dt,time){
     r.line.geometry.attributes.position.needsUpdate=true;r.line.visible=r.a.model.g.visible&&r.b.model.g.visible;});
   S.pickups.forEach(u=>{u.box.rotation.y+=dt*1.6;u.box.rotation.x=Math.sin(time*1.3+u.id)*0.25;u.box.position.y=0.6+Math.sin(time*3+u.id)*0.1;u.icon.position.y=u.box.position.y+0.85;});
   if(S.state==='aim'&&S.cur>=0&&cur().kind!=='bot'&&!S.botPull){
-    if(!S.drag)S.turnT-=dt;
+    if(cur().kind==='remote'&&!S.remoteAck){S.remoteWait=(S.remoteWait||0)+dt;if(S.remoteWait>45){S.remoteAck=true;S.turnT=-1;}}
+    else if(!S.drag)S.turnT-=dt;
     const left=Math.max(0,Math.ceil(S.turnT));
     if(left!==S.lastShown){S.lastShown=left;const p=cur();$('#strokeInfo').textContent=`ضربات: ${p.strokes} · ⏱ ${left}`;}
     if(S.turnT<=0&&isLocalHuman(cur())){S.turnT=999;S.drag=null;$('#power').classList.remove('on');doAction({t:'skip'});}
     else if(S.turnT<-(2+Math.random()*3)&&cur().kind==='remote'){S.turnT=999;forceSkipRemote();}
-    $('#skipBtn').classList.toggle('hidden',!(cur().kind==='remote'&&S.turnT<10&&S.turnT<900));
+    $('#skipBtn').classList.toggle('hidden',!(cur().kind==='remote'&&((S.remoteAck&&S.turnT<10&&S.turnT<900)||S.remoteWait>20)));
   }
-  for(let k=S.fx.length-1;k>=0;k--){const f=S.fx[k];f.t+=dt;const s=0.3+f.t/f.life*2.2;f.mesh.scale.setScalar(s);f.mesh.material.opacity=0.8*(1-f.t/f.life);if(f.t>=f.life){scene.remove(f.mesh);S.fx.splice(k,1);}}
+  for(let k=S.fx.length-1;k>=0;k--){const f=S.fx[k];f.t+=dt;if(f.emote){const q=f.p;f.mesh.position.set(q.model.g.position.x,q.pos.y+2.1+f.t*0.5,q.model.g.position.z);const pop=f.t<0.25?f.t/0.25:1;f.mesh.scale.set(1.3*pop,1.3*pop,1);f.mesh.material.opacity=f.t>1.6?Math.max(0,1-(f.t-1.6)/0.6):1;}else{const s=0.3+f.t/f.life*2.2;f.mesh.scale.setScalar(s);f.mesh.material.opacity=0.8*(1-f.t/f.life);}if(f.t>=f.life){scene.remove(f.mesh);S.fx.splice(k,1);}}
   // camera
   const p=S.cur>=0?cur():S.players[0];
   const focus=S.state==='moving'&&S.shotBy&&!S.shotBy.sunk?S.shotBy:p;
-  if(S.intro){const it=S.intro;it.t+=dt;const k=Math.min(1,it.t/it.dur);const e=k<0.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+  if(S.intro){const it=S.intro;it.t+=dt*(S.autoplay?6:1);const k=Math.min(1,it.t/it.dur);const e=k<0.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
     const yaw=Math.atan2(H.hole.x-H.start.x,H.hole.z-H.start.z);const fwd=V3(Math.sin(yaw),0,Math.cos(yaw));
     const from=V3(H.hole.x,Math.max(H.w,H.l)*0.9,H.hole.z).addScaledVector(fwd,8),fromT=V3(H.hole.x,0,H.hole.z);
     const to=V3(H.start.x,heightAt(H,H.start.x,H.start.z),H.start.z).addScaledVector(fwd,-7.2).add(V3(0,4.6,0)),toT=V3(H.start.x,0.4,H.start.z).addScaledVector(fwd,7);
