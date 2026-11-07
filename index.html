@@ -815,7 +815,7 @@ function updateParticles(dt){let k=0;for(let i=parts.length-1;i>=0;i--){const q=
 // ---------- synth sounds ----------
 const SFX=(()=>{
   // ---------- sample-based audio engine (Kenney CC0 samples) with synth fallback + original synth music ----------
-  let ctx=null,muted=false,musicOff=false,sfxVol=0.6,musVol=0.4;try{muted=localStorage.getItem('golf-muted')==='1';musicOff=localStorage.getItem('golf-music')==='0';const a=+localStorage.getItem('golf-sfxvol');if(a>=0&&a<=1&&!isNaN(a))sfxVol=a;const b=+localStorage.getItem('golf-musvol');if(b>=0&&b<=1&&!isNaN(b))musVol=b;}catch(e){}
+  let ctx=null,muted=false,musicOff=false,sfxVol=0.6,musVol=0.4;try{muted=localStorage.getItem('golf-muted')==='1';musicOff=localStorage.getItem('golf-music')==='0';const ra=localStorage.getItem('golf-sfxvol');if(ra!=null&&!isNaN(+ra))sfxVol=Math.max(0,Math.min(1,+ra));const rb=localStorage.getItem('golf-musvol');if(rb!=null&&!isNaN(+rb))musVol=Math.max(0,Math.min(1,+rb));}catch(e){}
   const BASE=(typeof window!=='undefined'&&window.SFX_BASE)||'sfx/';
   const NAMES='shot1 shot2 shot3 wall1 wall2 wall3 post tree rock crate bump1 bump2 ballhit splash well hole holejingle ace win win2 pickup energy skill react shield explode bomb quake freeze spike curse blind steal swap rope mine magnet oil gateopen gateclose zone treasure predok predno ui select back tick emote showdown turn draft miss portal wind trap sand block msg join'.split(' ');
   const bufs={};let master=null,sfxG=null,musG=null,musF=null,comp=null,rollSrc=null,rollG=null,rollF=null,loaded=false;
