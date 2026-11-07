@@ -249,6 +249,10 @@ input.txt{border:2px solid #fff;box-shadow:inset 0 2px 6px rgba(0,0,0,.08);borde
 #start .hero .logoRow{position:relative;z-index:1;margin:0}
 #start .hero h1{filter:drop-shadow(0 2px 0 #7a3a00) drop-shadow(0 6px 12px rgba(0,0,0,.55))}
 @media (pointer:coarse){#start .hero{margin:-16px -14px 10px;border-radius:18px 18px 0 0;height:150px}}
+#specBar{pointer-events:auto;display:flex;align-items:center;justify-content:center;gap:8px;margin:0 auto 6px;background:var(--panel-strong);border-radius:999px;padding:6px 8px;box-shadow:var(--shadow);font-weight:800;font-size:14px;width:max-content;max-width:96vw;animation:cardIn .3s cubic-bezier(.2,.8,.2,1)}
+#specBar small{display:block;font-weight:600;color:var(--muted);font-size:12px}
+#specBar .mini{width:36px;height:36px;flex:none}
+#specBar .pl{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.6);border-radius:999px;padding:2px 8px;margin-inline-start:4px;font-size:12px}
 </style>
 
 <canvas id="c"></canvas>
@@ -268,6 +272,7 @@ input.txt{border:2px solid #fff;box-shadow:inset 0 2px 6px rgba(0,0,0,.08);borde
   </div>
   <div class="bottom">
     <div id="emoteRow" class="hidden"></div>
+    <div id="specBar" class="hidden"></div>
     <div id="hint"></div>
     <button id="skipBtn" class="btn hidden" type="button" style="pointer-events:auto;margin:0 auto;width:auto;padding:10px 18px;font-size:15px">⏭️ جهاز اللاعب لا يستجيب: تخطي دوره</button>
     <div id="sideBar" class="hidden"></div>
@@ -286,7 +291,7 @@ input.txt{border:2px solid #fff;box-shadow:inset 0 2px 6px rgba(0,0,0,.08);borde
 <div id="start" class="overlay">
   <div class="card">
     <div class="hero"><div class="logoRow"><span class="logoBall" aria-hidden="true"></span><h1>غولف الاندفاع</h1></div></div>
-    <p class="tagline">فوضى ملوّنة · غولف أركيد تنافسي <small style="color:var(--muted);font-weight:500">· الإصدار 47</small></p>
+    <p class="tagline">فوضى ملوّنة · غولف أركيد تنافسي <small style="color:var(--muted);font-weight:500">· الإصدار 48</small></p>
     <p>اسحب كرتك للخلف كالمقلاع واتركها. أول من يُدخل الكرة يأخذ أكبر النقاط. اجمع المهارات من الصناديق ❓ وخرّب على أصدقائك.</p>
     <details class="how"><summary>كيف تلعب؟ القوانين كاملة</summary><p>اسحب كرتك للخلف كالمقلاع واتركها لتنطلق نحو الحفرة. أول من يُدخلها يأخذ أكبر النقاط ويفتح «الجولة الأخيرة»: ضربة واحدة للبقية. المهارات لا تبدأ معك: اصطدم بالصناديق المجهولة ❓ لتحصل على واحدة من 12 مهارة عشوائية، منها الحبل الذي يربط خصمين معاً واللعنة التي تحرف ضربة خصمك. احذر الفخاخ: رمل، قافز، عارضة دوّارة، مروحة، ثقب جاذب، وأشواك. اصدم الخصوم وازرع الألغام لتكسب نقاطاً. لكل مرحلة حدث عشوائي وكنز مخفي وعوائق تُكسر بأول لمسة لتفتح الطريق، ومستوى «جحيم» يخفي الفخاخ والجدران والحفرة. الفيزياء رياضية: القوة تساوي مسافة التوقف بالضبط، والكرة ترتد عن الجدران بزاوية انعكاس مساوية لزاوية السقوط وبلا فقدان للسرعة.</p>
 </details>
@@ -1286,12 +1291,21 @@ function rushBotShoot(b){if(S.state!=='rush'||!S.rush||S.rush.ended||b.rdone||b.
   for(let ai=-6;ai<=6;ai++){for(let pw=0.15;pw<=1.001;pw+=0.14)ev(base+ai*Math.PI/12,pw);}if(best.ang!=null){const a0=best.ang,p0=best.pw;for(let ai=-2;ai<=2;ai++)for(let pi=-2;pi<=2;pi++){if(!ai&&!pi)continue;ev(a0+ai*Math.PI/48,clamp(p0+pi*0.05,0.1,1));}}
   const bp=botProf(b).base;const ex=botExp(b);const an=bp.aim*(1-0.55*ex),pn=bp.pwr*(1-0.55*ex);const ang=best.ang+rnd(-an,an),pw=clamp(best.pw*rnd(1-pn,1+pn),0.1,1);
   b.strokes++;const v=shotSpeed(pw);b.vel.set(Math.cos(ang)*v,0,Math.sin(ang)*v);b.lastRest=b.pos.clone();if(b.rh===S.hole)SFX.shot(pw*0.6);}
+function rushLoadHole(hi,b){const keep=S.players.map(q=>({pos:q.pos.clone(),vel:q.vel.clone(),rh:q.rh,s:q.strokes,t:q.rtot,d:q.rdone,h:q.holed,sk:q.sunk,wet:q.wet,rt:q.rtime,pt:q.pts,ra:q.rAdv}));loadHole(hi,true);
+  S.players.forEach((q,i)=>{const k=keep[i];q.rh=k.rh;q.strokes=k.s;q.rtot=k.t;q.rdone=k.d;q.holed=k.h;q.sunk=k.sk;q.wet=k.wet;q.rtime=k.rt;q.pts=k.pt;q.rAdv=k.ra;q.spawned=true;q.popT=null;q.model.g.scale.set(1,1,1);if(q===b){spawnPlayer(q);q.model.g.scale.set(1,1,1);q.popT=null;}else{q.pos.copy(k.pos);q.vel.copy(k.vel);q.pos.y=heightAt(rushHoleOf(q),q.pos.x,q.pos.z);}});
+  S.state='rush';S.intro=null;S.overview=false;}
+function rushSpecCands(){const me=rushMe();return S.players.filter(q=>q!==me&&!q.rdone&&!q.spectator&&q.spawned);}
+function rushLeader(list){return [...list].sort((a,b)=>(b.rh-a.rh)||(a.strokes-b.strokes)||(a.id-b.id))[0];}
+function rushSpecSet(id,auto){const q=S.players[id];if(!q||S.state!=='rush')return;const was=S.spec&&S.spec.id;S.spec={id,auto:!!auto,t:performance.now()};if(q.rh!==S.hole)rushLoadHole(q.rh,null);S.cur=q.id;S.camYaw=Math.atan2(S.H.hole.x-q.pos.x,S.H.hole.z-q.pos.z);S.camUserT=0;rushVis();updateHUD();if(was!==id)banner(`👁️ تشاهد ${q.name}`,900);}
+function rushSpecPick(){const c=rushSpecCands();if(!c.length){S.spec=null;return;}rushSpecSet(rushLeader(c).id,true);}
+function rushSpecCycle(dir){const c=rushSpecCands();if(!c.length)return;let i=c.findIndex(q=>S.spec&&q.id===S.spec.id);i=((i<0?0:i)+dir+c.length)%c.length;rushSpecSet(c[i].id,false);SFX.ui();}
+function rushSpecTick(){if(S.state!=='rush'||!S.rush||S.rush.ended)return;const me=rushMe();if(!me||!me.rdone){S.spec=null;return;}const q=S.spec?S.players[S.spec.id]:null;if(!q||q.rdone||q.spectator||!q.spawned){rushSpecPick();return;}
+  if(q.rh!==S.hole){rushSpecSet(q.id,S.spec.auto);return;}
+  if(S.spec.auto){const lead=rushLeader(rushSpecCands());if(lead&&lead!==q&&lead.rh>q.rh&&performance.now()-S.spec.t>6000)rushSpecSet(lead.id,true);}}
 function rushAdvance(b){if(!S.rush||b.rdone)return;{const key=String(b.rh);const o=S.rushOrder[key]=(S.rushOrder[key]||[]);if(!o.includes(b.id)){o.push(b.id);const pos=o.length;b.pts+=[5,3,2,1][pos-1]||1;const me=rushMe();if(b===me)banner(pos===1?'🥇 الأول!':pos===2?'🥈 الثاني':pos===3?'🥉 الثالث':'⛳ أكملتها',1100,true);else if(pos===1&&b.rh===S.hole)toast(`🥇 ${b.name} أنهى المرحلة أولاً!`);}}b.rtot+=b.strokes;b.rh++;b.rAdv=false;b.holed=false;b.sunk=false;b.sinkT=0;b.sinkDrop=0;b.announced=false;b.vel.set(0,0,0);b.air=false;b.wet=false;b.strokes=0;b.model.g.scale.set(1,1,1);
   const me=rushMe();
-  if(b.rh>=holeCount){b.rdone=true;b.rtime=(performance.now()-S.rush.t0)/1000*(S.autoplay?3:1);b.model.g.visible=false;toast(`🏁 ${b.name} أنهى كل المراحل!`);if(b===me){SFX.win();confetti();}rushVis();updateHUD();return;}
-  if(b===me){const keep=S.players.map(q=>({pos:q.pos.clone(),vel:q.vel.clone(),rh:q.rh,s:q.strokes,t:q.rtot,d:q.rdone,h:q.holed,sk:q.sunk,wet:q.wet,rt:q.rtime}));loadHole(b.rh,true);
-    S.players.forEach((q,i)=>{const k=keep[i];q.rh=k.rh;q.strokes=k.s;q.rtot=k.t;q.rdone=k.d;q.holed=k.h;q.sunk=k.sk;q.wet=k.wet;q.rtime=k.rt;q.spawned=true;q.popT=null;q.model.g.scale.set(1,1,1);if(q===b){spawnPlayer(q);q.model.g.scale.set(1,1,1);q.popT=null;}else{q.pos.copy(k.pos);q.vel.copy(k.vel);q.pos.y=heightAt(rushHoleOf(q),q.pos.x,q.pos.z);}});
-    S.state='rush';S.cur=b.id;S.intro=null;S.camYaw=Math.atan2(S.H.hole.x-b.pos.x,S.H.hole.z-b.pos.z);setTimeout(()=>banner(`⛳ المرحلة ${b.rh+1}/${holeCount}`,1000),1150);}
+  if(b.rh>=holeCount){b.rdone=true;b.rtime=(performance.now()-S.rush.t0)/1000*(S.autoplay?3:1);b.model.g.visible=false;toast(`🏁 ${b.name} أنهى كل المراحل!`);if(b===me){SFX.win();confetti();setTimeout(()=>{if(S.state==='rush'&&S.rush&&!S.rush.ended&&me.rdone)rushSpecPick();},S.autoplay?400:1400);}rushVis();updateHUD();return;}
+  if(b===me){rushLoadHole(b.rh,b);S.cur=b.id;S.camYaw=Math.atan2(S.H.hole.x-b.pos.x,S.H.hole.z-b.pos.z);setTimeout(()=>banner(`⛳ المرحلة ${b.rh+1}/${holeCount}`,1000),1150);}
   else{const H=rushHoleOf(b);b.pos.set(H.start.x+((b.id%3)-1)*1.2,0,H.start.z+(b.id>2?1.3:0));b.pos.y=heightAt(H,b.pos.x,b.pos.z);b.lastRest=b.pos.clone();}
   rushVis();updateHUD();}
 function rushEvents(b,ev){const me=rushMe();const near=b.rh===S.hole;if(ev.includes('holed')){if(near){holeFx(b.pos);SFX.holed();[0xffd23f,0xff7a9a,0x7cd8ff].forEach(c=>burst(b.pos,10,c,1.2,2));}if(b===me)toast(`⛳ أدخلتها بـ ${b.strokes} ${b.strokes===1?'ضربة':'ضربات'}`);if(b.kind==='bot'&&b.strokes===1)showEmote(b,'🤩');}
@@ -1305,16 +1319,16 @@ function rushTick(dt){const R0=S.rush;if(!R0||R0.ended)return;const me=rushMe();
     if(b.holed&&b.sunk&&!b.rAdv){b.rAdv=true;rushAdvance(b);return;}
     if(!b.holed&&!b.wet&&!b.air&&b.vel.x===0&&b.vel.z===0&&b.spawned){b.spikeDone=false;b.bumpN=0;if(b.strokes>=DUEL.rushCap){b.strokes+=2;toast(`${b.name} تجاوز حد الضربات وانتقل بغرامة`);rushAdvance(b);return;}
       if(b.kind==='bot'&&!b.botT&&performance.now()>=(R0.go||0)){b.botT=setTimeout(()=>{b.botT=null;rushBotShoot(b);},S.autoplay?250:700+Math.random()*900);}}});
-  R0.hudT=(R0.hudT||0)+dt;if(R0.hudT>0.5){R0.hudT=0;updateHUD();}
+  R0.hudT=(R0.hudT||0)+dt;if(R0.hudT>0.5){R0.hudT=0;rushSpecTick();updateHUD();}
   const left=R0.dur-(performance.now()-R0.t0)/1000*(S.autoplay?3:1);
   if(left<=0||S.players.every(b=>b.rdone||b.spectator))endRush();
   if(S.mode==='online'&&NET.room){S.rushNetT=(S.rushNetT||0)+dt;if(S.rushNetT>0.12){S.rushNetT=0;rushSend();}}}
 function rushSend(){const me=myPlayer();const list=[];S.players.forEach(b=>{if(b===me||(b.kind==='bot'&&isHostNow()))list.push({id:b.id,x:+b.pos.x.toFixed(2),z:+b.pos.z.toFixed(2),h:b.rh|0,s:b.strokes|0,t:b.rtot|0,d:b.rdone?1:0,rt:+(b.rtime||0).toFixed(1),pt:b.pts|0});});if(list.length)NET.room.emit('rush',{p:list}).catch(()=>{});}
 function rushRecv(m){S.lastRushMsg=m;if(S.state!=='rush'||!S.rush)return;const l=seats();const fromHost=l[0]&&l[0].peer===m.peer;(m.data&&m.data.p||[]).forEach(d=>{const q=S.players[d.id|0];if(!q)return;if(q.kind==='human')return;if(q.kind==='remote'&&q.peer!==m.peer)return;if(q.kind==='bot'&&!fromHost)return;
-    if((d.h|0)>(q.rh|0)&&q.rh===S.hole&&rushMe()&&(d.h|0)>rushMe().rh)toast(`⛳ ${q.name} أنهى المرحلة`);q.rh=d.h|0;q.strokes=d.s|0;q.rtot=d.t|0;q.rdone=!!d.d;q.rtime=+d.rt||0;q.pts=d.pt|0;q.spawned=true;q.holed=false;q.sunk=false;
+    if((d.h|0)>(q.rh|0)&&q.rh===S.hole&&rushMe()&&(d.h|0)>rushMe().rh)toast(`⛳ ${q.name} أنهى المرحلة`);if(d.d&&!q.rdone){toast(`🏁 ${q.name} أنهى كل المراحل!`);SFX.turn();}q.rh=d.h|0;q.strokes=d.s|0;q.rtot=d.t|0;q.rdone=!!d.d;q.rtime=+d.rt||0;q.pts=d.pt|0;q.spawned=true;q.holed=false;q.sunk=false;
     if(q.rh===S.hole&&!q.rdone){const ox=q.model.g.position.x,oz=q.model.g.position.z;const nx=+d.x||0,nz=+d.z||0;const wasVis=q.model.g.visible;q.pos.set(nx,heightAt(S.H,nx,nz),nz);q.vel.set(0,0,0);if(wasVis){q.vis.set(ox-nx,0,oz-nz);if(q.vis.length()>12)q.vis.set(0,0,0);}else q.vis.set(0,0,0);q.model.g.visible=true;q.model.g.scale.set(1,1,1);q.popT=null;}else q.model.g.visible=false;});
   if(S.players.every(b=>b.rdone||b.spectator))endRush();}
-function endRush(){if(!S.rush||S.rush.ended)return;S.rush.ended=true;rushLook(false);S.players.forEach(b=>{if(b.botT){clearTimeout(b.botT);b.botT=null;}});S.state='board';
+function endRush(){if(!S.rush||S.rush.ended)return;S.rush.ended=true;S.spec=null;$('#specBar').classList.add('hidden');rushLook(false);S.players.forEach(b=>{if(b.botT){clearTimeout(b.botT);b.botT=null;}});S.state='board';
   const rows=[...S.players].filter(q=>!q.spectator).sort((a,b)=>(b.rdone-a.rdone)||((a.rdone&&b.rdone)?((a.rtime||1e9)-(b.rtime||1e9)):0)||(b.rh-a.rh)||(b.pts-a.pts)||((a.rtot+a.strokes)-(b.rtot+b.strokes)));
   $('#boardTitle').textContent='🏎️ نتيجة السباق';
   $('#boardBody').innerHTML=rows.map((p,i)=>`<tr class="${p.kind==='human'&&S.mode!=='local'?'me':''} ${i===0?'first':''}"><td>${['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'][i]} ${p.name}</td><td class="num">${p.rdone?'🏁 أنهى الكل':`المرحلة ${Math.min(holeCount,p.rh+1)}/${holeCount}`}${p.rdone?` <small style="color:var(--muted)">${Math.floor(p.rtime/60)}:${String(Math.floor(p.rtime%60)).padStart(2,'0')}</small>`:''}</td><td class="num">${p.pts}★ <small style="color:var(--muted)">${p.rtot+p.strokes} ضربة</small></td></tr>`).join('');
@@ -1597,7 +1611,11 @@ function updateHUD(){
   {const owner=(p&&p.kind==='human')?p:(S.mode==='local'?null:S.players.find(q=>q.kind==='human'));
    const ropeOk=k=>!(k==='rope'&&S.players.filter(o=>o!==owner&&o.spawned&&!o.holed).length<2);const keys=(owner&&!F().rush)?(F().shop?BRAWL_SKILLS.filter(ropeOk):(F().draft&&owner.loadout)?owner.loadout.filter(ropeOk):Object.keys(SKILLS).filter(k=>owner.sk[k]>0&&ropeOk(k))):[];
    $('#skills').innerHTML=keys.length?keys.map(k=>`<button type="button" class="sk ${S.armed[k]?'armed':''}" data-k="${k}" ${!mine?'disabled':''}><span class="ic">${SKILLS[k].icon}</span>${SKILLS[k].name}<span class="n">${(F().draft||F().shop)?(canAfford(owner,k)?skillCost(k)+'⚡':'⏳'):owner.sk[k]}</span></button>`).join(''):(owner?`<div class="nosk">${F().rush?'🏎️ سباق بلا مهارات: الأسرع يفوز':F().boxEnergy?'الصناديق ❓ تعطي طاقة ⚡':'لا مهارات بعد · اصطدم بالصناديق ❓ لتكسبها'}</div>`:'');}
-  $('#hint').textContent=S.state==='rush'?(rushCanShoot()?'🏎️ اضغط على كرتك واسحب: الجميع يلعب الآن!':(rushMe()&&rushMe().rdone?'🏁 أنهيت السباق، بانتظار البقية':'')):S.state==='aim'?(S.phase==='react'&&mine?'⏳ نافذة الرد: الخصوم يجهّزون ردّهم، ثم تسدد':mine?(S.overview?'أغلق النظرة العلوية ثم اسحب للتسديد':'اضغط على الكرة واسحب للخلف للتسديد · اسحب الشاشة لتدوير الكاميرا'):`${p?p.name:''} ${p&&p.kind==='remote'?((!S.remoteAck&&S.remoteWait>8)?'جهازه لا يستجيب…':'يسدد الآن…'):'يستعد للتسديد…'}`):'';
+  {const sb=$('#specBar');const me=rushMe();const q=(S.state==='rush'&&S.rush&&me&&me.rdone&&S.spec)?S.players[S.spec.id]:null;
+   if(q){const rk=[...S.players].filter(x=>!x.spectator).sort((a,b)=>(b.rdone-a.rdone)||((a.rdone&&b.rdone)?((a.rtime||1e9)-(b.rtime||1e9)):0)||(b.rh-a.rh)||(b.pts-a.pts));const mypos=rk.indexOf(me)+1;const left=rushSpecCands().length;const many=left>1;
+    sb.classList.remove('hidden');sb.innerHTML=`${many?'<button type="button" class="mini" data-spec="1" title="اللاعب التالي">◀</button>':''}<span>👁️ تشاهد <b style="color:${hex(q.color)}">${q.name}</b><span class="pl">⛳ ${Math.min(holeCount,(q.rh|0)+1)}/${holeCount}</span><span class="pl">🏌️ ${q.strokes}</span><small>🏁 أنهيت السباق بالمركز ${mypos} مؤقتاً · بانتظار ${left} ${left===1?'لاعب':'لاعبين'}${S.spec.auto?' · 🔄 يتابع المتصدر':''}</small></span>${many?'<button type="button" class="mini" data-spec="-1" title="اللاعب السابق">▶</button>':''}`;}
+   else sb.classList.add('hidden');}
+  $('#hint').textContent=S.state==='rush'?(rushCanShoot()?'🏎️ اضغط على كرتك واسحب: الجميع يلعب الآن!':(rushMe()&&rushMe().rdone?(S.spec?'اسحب الشاشة لتدوير الكاميرا · الأزرار لتبديل اللاعب':'🏁 أنهيت السباق، بانتظار البقية'):'')):S.state==='aim'?(S.phase==='react'&&mine?'⏳ نافذة الرد: الخصوم يجهّزون ردّهم، ثم تسدد':mine?(S.overview?'أغلق النظرة العلوية ثم اسحب للتسديد':'اضغط على الكرة واسحب للخلف للتسديد · اسحب الشاشة لتدوير الكاميرا'):`${p?p.name:''} ${p&&p.kind==='remote'?((!S.remoteAck&&S.remoteWait>8)?'جهازه لا يستجيب…':'يسدد الآن…'):'يستعد للتسديد…'}`):'';
   $('#tut').classList.toggle('on',mine&&!S.overview&&S.shots===0&&!S.drag);
   $('#msgBtn').classList.toggle('hidden',!NET.room);
   {const me=myPlayer();const sb=$('#sideBar');const waiting=me&&p&&p!==me&&S.state==='aim'&&!me.holed&&!me.spectator&&(F().pred||F().react);
@@ -1860,7 +1878,7 @@ function openMsgBox(){if(!NET.room)return;const list=S.players.length?S.players.
   $('#msgText').value='';$('#msgBox').classList.remove('hidden');}
 $('#msgBtn').addEventListener('click',openMsgBox);
 function openMenu(){$('#menuMsg').disabled=!NET.room;$('#menuMsgHint').textContent=NET.room?'أرسل رسالة لا يقرأها إلا المستلم':'متاحة في وضع الأونلاين';$('#menu').classList.remove('hidden');}
-function goHome(){clearTimeout(S.autoNext);if(S.rush)rushLook(false);S.rush=null;S.players.forEach(b=>{if(b.botT){clearTimeout(b.botT);b.botT=null;}});applyTheme(THEMES.classic,null);['#menu','#board','#picker','#msgBox','#lobby','#inbox','#draft','#chalBox'].forEach(x=>$(x).classList.add('hidden'));clearTimeout(S.draftTimer);
+function goHome(){clearTimeout(S.autoNext);if(S.rush)rushLook(false);S.rush=null;S.spec=null;$('#specBar').classList.add('hidden');S.players.forEach(b=>{if(b.botT){clearTimeout(b.botT);b.botT=null;}});applyTheme(THEMES.classic,null);['#menu','#board','#picker','#msgBox','#lobby','#inbox','#draft','#chalBox'].forEach(x=>$(x).classList.add('hidden'));clearTimeout(S.draftTimer);
   if(NET.room){NET.unsub.forEach(u=>{try{u();}catch(e){}});NET.unsub=[];try{NET.room.leave();}catch(e){}NET.room=null;clearInterval(DIR.reg);clearSession();$('#msgBtn').classList.add('hidden');}
   S.players.forEach(q=>{q.model.g.visible=false;q.label.visible=false;});S.ropes.forEach(r=>scene.remove(r.line));S.ropes=[];S.drag=null;S.botPull=null;S.state='start';S.cur=-1;S.mode='solo';
   $('#start').classList.remove('hidden');updateHUD();}
@@ -1868,6 +1886,7 @@ $('#menuBtn').addEventListener('click',()=>renderSkins());
 $('#menuBtn').addEventListener('click',openMenu);
 $('#emoteRow').innerHTML=EMOTES.map(e=>`<button type="button" data-e="${e}">${e}</button>`).join('');$('#emoteRow').addEventListener('click',e=>{const b=e.target.closest('button');if(b)sendEmote(b.dataset.e);});
 $('#emoteBtn').addEventListener('click',()=>$('#emoteRow').classList.toggle('hidden'));
+$('#specBar').addEventListener('click',e=>{const b=e.target.closest('[data-spec]');if(b)rushSpecCycle(+b.dataset.spec);});
 $('#skipBtn').addEventListener('click',()=>{$('#skipBtn').classList.add('hidden');S.turnT=999;forceSkipRemote();});
 $('#menuResume').addEventListener('click',()=>$('#menu').classList.add('hidden'));
 $('#menuMsg').addEventListener('click',()=>{$('#menu').classList.add('hidden');openMsgBox();});
@@ -2148,7 +2167,7 @@ function update(dt,time){
     if(sp>0.05||p.air){_v.set(p.vel.x,0,p.vel.z).normalize();_ax.copy(_up).cross(_v);if(_ax.lengthSq()>1e-6){_q.setFromAxisAngle(_ax.normalize(),(p.air?Math.max(4,sp/R):sp/R)*dt);p.model.pivot.quaternion.premultiply(_q);}}
     p.label.position.set(p.model.g.position.x,p.pos.y+1.35,p.model.g.position.z);p.label.visible=p.model.g.visible;
     {const gy=heightAt(H,p.model.g.position.x,p.model.g.position.z);p.model.blob.position.y=gy-p.model.g.position.y+0.03;const h=Math.max(0,p.model.g.position.y-gy);p.model.blob.material.opacity=Math.max(0.15,1-h*0.25);const bs=1+h*0.15;p.model.blob.scale.set(bs,bs,1);}
-    p.model.ball.material.opacity=p.ghost?0.45:(S.state==='rush'&&p!==rushMe()?0.5:1);const gs=p.giant?1.7:1;if(!p.holed&&p.popT==null){p.model.g.scale.x+=(gs-p.model.g.scale.x)*Math.min(1,dt*8);p.model.g.scale.y=p.model.g.scale.z=p.model.g.scale.x;}
+    p.model.ball.material.opacity=p.ghost?0.45:(S.state==='rush'&&p!==rushMe()&&!(S.spec&&S.spec.id===p.id)?0.5:1);const gs=p.giant?1.7:1;if(!p.holed&&p.popT==null){p.model.g.scale.x+=(gs-p.model.g.scale.x)*Math.min(1,dt*8);p.model.g.scale.y=p.model.g.scale.z=p.model.g.scale.x;}
     if(!p.trail){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(24*2*3),3));const idx=[];for(let i=0;i<23;i++){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}g.setIndex(idx);const line=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:p.color,transparent:true,opacity:0.5,depthWrite:false,side:THREE.DoubleSide}));line.frustumCulled=false;line.renderOrder=2;scene.add(line);p.trail={line,pts:[]};S.trails.push(p.trail);}
     if((sp>1.5||p.air)&&Q.trail){p.trail.pts.push(p.model.g.position.clone().add(V3(0,R,0)));if(p.trail.pts.length>24)p.trail.pts.shift();}else if(p.trail.pts.length){p.trail.pts.shift();}
     {const arr=p.trail.line.geometry.attributes.position.array;const n=p.trail.pts.length;for(let i=0;i<24;i++){const q=p.trail.pts[i]||p.trail.pts[n-1]||p.model.g.position;const nx=p.trail.pts[Math.min(n-1,i+1)]||q,pv=p.trail.pts[Math.max(0,i-1)]||q;let tx=nx.x-pv.x,tz=nx.z-pv.z;const L=Math.hypot(tx,tz)||1;tx/=L;tz/=L;const w=0.26*(n?Math.min(1,i/Math.max(1,n-1)):0)*0.5;arr[i*6]=q.x-tz*w;arr[i*6+1]=q.y-R+0.06;arr[i*6+2]=q.z+tx*w;arr[i*6+3]=q.x+tz*w;arr[i*6+4]=q.y-R+0.06;arr[i*6+5]=q.z-tx*w;}p.trail.line.geometry.attributes.position.needsUpdate=true;p.trail.line.visible=n>2&&p.model.g.visible&&!p.holed;p.trail.line.material.opacity=0.3+clamp((sp-3)/14,0,1)*0.45;}
