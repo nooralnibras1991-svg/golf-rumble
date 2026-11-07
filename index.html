@@ -167,7 +167,7 @@ tr.me td{color:#9a6b00;font-weight:700}
 
 <div id="start" class="overlay">
   <div class="card">
-    <h1>غولف الاندفاع <small style="font-size:12px;color:var(--muted);font-weight:500">الإصدار 33</small></h1>
+    <h1>غولف الاندفاع <small style="font-size:12px;color:var(--muted);font-weight:500">الإصدار 37</small></h1>
     <p>اسحب كرتك للخلف كالمقلاع واتركها لتنطلق نحو الحفرة. أول من يُدخلها يأخذ أكبر النقاط ويفتح «الجولة الأخيرة»: ضربة واحدة للبقية. المهارات لا تبدأ معك: اصطدم بالصناديق المجهولة ❓ لتحصل على واحدة من 12 مهارة عشوائية، منها الحبل الذي يربط خصمين معاً واللعنة التي تحرف ضربة خصمك. احذر الفخاخ: رمل، قافز، عارضة دوّارة، مروحة، ثقب جاذب، وأشواك. اصدم الخصوم وازرع الألغام لتكسب نقاطاً. لكل مرحلة حدث عشوائي وكنز مخفي وعوائق تُكسر بأول لمسة لتفتح الطريق، ومستوى «جحيم» يخفي الفخاخ والجدران والحفرة. الفيزياء رياضية: القوة تساوي مسافة التوقف بالضبط، والكرة ترتد عن الجدران بزاوية انعكاس مساوية لزاوية السقوط وبلا فقدان للسرعة.</p>
     <div class="tabs" id="modeTabs">
       <button type="button" data-m="solo" class="on">🤖 ضد الكمبيوتر</button>
@@ -196,10 +196,15 @@ tr.me td{color:#9a6b00;font-weight:700}
         <input class="txt" id="nick" maxlength="14" placeholder="مثال: ريضا">
         <div class="lbl">رمز الغرفة</div>
         <input class="txt" id="roomCode" maxlength="6" placeholder="6 أحرف أو أرقام" style="direction:ltr;text-align:center;letter-spacing:.2em;text-transform:uppercase">
+        <div class="lbl">كلمة مرور الغرفة (اختياري)</div>
+        <input class="txt" id="roomPw" maxlength="20" placeholder="اتركها فارغة لغرفة مفتوحة" style="direction:ltr;text-align:center">
         <div class="row2">
           <button class="btn" id="createRoom" type="button">إنشاء غرفة</button>
           <button class="btn ghost" id="joinRoom" type="button">انضمام</button>
         </div>
+        <button class="btn ghost hidden" id="resumeBtn" type="button">↩️ العودة إلى مباراتي السابقة</button>
+        <div class="lbl" style="display:flex;justify-content:space-between;align-items:center">الغرف المفتوحة الآن <button type="button" id="refreshRooms" class="mini" style="width:auto;padding:4px 10px;font-size:13px">🔄 تحديث</button></div>
+        <div id="roomList" class="lobby"><div class="pl">اضغط تحديث لعرض الغرف</div></div>
       </div>
     </div>
   </div>
@@ -215,6 +220,18 @@ tr.me td{color:#9a6b00;font-weight:700}
   <div class="lbl">المراحل: اضغط للاختيار، والترتيب حسب ترتيب اختيارك</div>
   <div id="mapGrid" class="mapgrid"></div>
   <p id="diffHint" style="margin:6px 0 0"></p>
+</div>
+
+<div id="tutBox" class="overlay hidden" style="z-index:7">
+  <div class="card">
+    <h2>كيف تلعب في 3 خطوات</h2>
+    <ul>
+      <li><b>1. التسديد:</b> اضغط على كرتك واسحب عكس الاتجاه المطلوب. الفقاعة تعرض القوة بالأمتار والزاوية.</li>
+      <li><b>2. الأرض:</b> الخطوط والأسهم على العشب تبيّن المنحدرات واتجاه النزول. الفخاخ ملوّنة: رمل، قافز أحمر، عارضة دوّارة، مروحة، ثقب بنفسجي، أشواك.</li>
+      <li><b>3. الفوز:</b> أول من يُدخل الكرة يأخذ أكبر النقاط ويفتح «الجولة الأخيرة». اصطدم بالصناديق ❓ لتكسب مهارات وخرّب على الخصوم.</li>
+    </ul>
+    <button class="btn" id="tutOk" type="button">فهمت، لنلعب</button>
+  </div>
 </div>
 
 <div id="lobby" class="overlay hidden">
@@ -307,13 +324,13 @@ const HOLES=[
    items:[{x:5,z:8},{x:-5,z:2},{x:5,z:-4},{x:-1,z:-10},{x:-6,z:13},{x:6,z:-13}]},
   {name:'التل الكبير',theme:'classic',par:4,w:16,l:36,start:{x:-5,z:15},hole:{x:5,z:-14},
    walls:[{x:0,z:0,w:1,l:12,h:1},{x:4,z:-9,w:6,l:1,h:1}],posts:[{x:-4,z:-6,r:0.9},{x:4,z:5,r:0.9},{x:-2,z:-12,r:0.8}],bumps:[{x:0,z:0,r:5,a:1.6}],water:[{x:5,z:-5,w:6,l:4},{x:-6,z:5,w:4,l:5}],
-   items:[{x:-5,z:5},{x:6,z:10},{x:-3,z:-11},{x:0,z:-4},{x:7,z:-1},{x:-7,z:-3}]},
+   items:[{x:-3,z:5},{x:6,z:10},{x:-3,z:-11},{x:0,z:-4},{x:7,z:-1},{x:-7,z:-3}]},
   {name:'الحلقة',theme:'classic',par:4,w:22,l:22,start:{x:-9,z:9},hole:{x:0,z:0},
    walls:[{x:0,z:3.5,w:7,l:1,h:1},{x:0,z:-3.5,w:7,l:1,h:1},{x:3.5,z:0,w:1,l:8,h:1},{x:-3.5,z:2,w:1,l:4,h:1}],posts:[{x:-6,z:-6,r:1},{x:-7,z:1,r:0.8}],bumps:[{x:-6,z:0,r:3,a:-0.8},{x:6,z:6,r:3,a:0.8},{x:6,z:-6,r:3,a:0.8}],water:[{x:0,z:-8,w:8,l:3}],
    items:[{x:-7,z:-3},{x:6,z:6},{x:0,z:-6},{x:8,z:-8},{x:-1.8,z:0},{x:8,z:2}]},
   {name:'المتاهة',theme:'classic',par:5,w:16,l:32,start:{x:0,z:14},hole:{x:0,z:-13},
    walls:[{x:-3,z:7,w:10,l:1,h:1},{x:3,z:1,w:10,l:1,h:1},{x:-3,z:-5,w:10,l:1,h:1},{x:0,z:-10,w:1,l:3,h:1}],posts:[{x:3,z:-11,r:0.7},{x:-3,z:-11,r:0.7}],bumps:[{x:5,z:4,r:2.5,a:0.6},{x:-5,z:-2,r:2.5,a:-0.5}],water:[{x:-5,z:11,w:4,l:3}],
-   items:[{x:5.5,z:7},{x:-5.5,z:1},{x:5.5,z:-5},{x:0,z:-7.5},{x:-6,z:11},{x:6,z:-12}]},
+   items:[{x:5.5,z:7},{x:-5.5,z:1},{x:5.5,z:-5},{x:0,z:-7.5},{x:-2,z:11},{x:6,z:-12}]},
   {name:'الجزيرة',theme:'ring',par:4,w:20,l:30,start:{x:0,z:13},hole:{x:0,z:-9},
    walls:[{x:0,z:-11.5,w:1,l:1.2,h:0.8}],posts:[],bumps:[{x:0,z:4,r:4,a:0.9},{x:-9,z:-3,r:1.5,a:0.3},{x:9,z:-3,r:1.5,a:0.3}],water:[{x:0,z:-3,w:16,l:4},{x:0,z:-13.5,w:12,l:3}],
    items:[{x:0,z:8},{x:-9,z:1},{x:9,z:1},{x:0,z:-7},{x:-4,z:-7.5},{x:4,z:-7.5}]},
@@ -328,10 +345,25 @@ const HOLES=[
    items:[{x:8,z:12},{x:-8,z:3},{x:0,z:4},{x:-8,z:-12},{x:3,z:-13},{x:9,z:1}]},
   {name:'الحلقة الفضائية',theme:'ring',par:4,w:24,l:30,start:{x:-10,z:12},hole:{x:10,z:-12},
    walls:[{x:0,z:6,w:1,l:8,h:1},{x:0,z:-6,w:1,l:8,h:1,hidden:true}],posts:[{x:-8,z:0,r:0.9},{x:8,z:0,r:0.9}],bumps:[{x:-10,z:-4,r:3,a:0.8},{x:10,z:4,r:3,a:0.8}],water:[{x:0,z:0,w:10,l:10},{x:-6,z:-9,w:8,l:5},{x:6,z:9,w:8,l:5}],
-   items:[{x:-10,z:0},{x:10,z:0},{x:0,z:12},{x:0,z:-12},{x:-4,z:-4},{x:4,z:4}]},
+   items:[{x:-10,z:0},{x:10,z:0},{x:0,z:12},{x:0,z:-12},{x:-7,z:-4},{x:7,z:4}]},
   {name:'المتاهة المزدوجة',theme:'classic',par:4,w:20,l:36,start:{x:0,z:16},hole:{x:0,z:-16},
    walls:[{x:0,z:0,w:1,l:24,h:1},{x:-5,z:-6,w:8,l:1,h:1},{x:5,z:6,w:8,l:1,h:1,hidden:true}],posts:[{x:-6,z:4,r:0.8}],bumps:[{x:5,z:-13,r:2.5,a:-0.5}],water:[{x:-6,z:-12,w:5,l:3}],
-   items:[{x:-7,z:10},{x:7,z:10},{x:-7,z:-2},{x:7,z:-6},{x:-3,z:-14},{x:3,z:-14}]}
+   items:[{x:-7,z:10},{x:7,z:10},{x:-7,z:-2},{x:7,z:-6},{x:-3,z:-14},{x:3,z:-14}]},
+  {name:'الحمم السوداء',theme:'hell',par:5,w:20,l:38,start:{x:-7,z:17},hole:{x:7,z:-17},
+   walls:[{x:-8,z:-1,w:4,l:1,h:1},{x:8,z:11,w:4,l:1,h:1}],posts:[{x:0,z:-1,r:1}],bumps:[{x:0,z:-13,r:3,a:0.9}],water:[{x:0,z:5,w:14,l:3},{x:0,z:-7,w:14,l:3}],
+   items:[{x:8,z:15},{x:-8,z:8},{x:8,z:1},{x:-8,z:-5},{x:0,z:-11},{x:-6,z:-16}]},
+  {name:'برج الشيطان',theme:'hell',par:4,w:18,l:30,start:{x:0,z:13},hole:{x:0,z:-12},
+   walls:[{x:-3,z:6,w:10,l:1,h:1},{x:3,z:0,w:10,l:1,h:1},{x:-3,z:-6,w:10,l:1,h:1}],posts:[{x:6,z:6,r:0.8},{x:-6,z:-6,r:0.8}],bumps:[{x:0,z:-12,r:2.5,a:0.6}],water:[{x:-6,z:12,w:4,l:3}],
+   items:[{x:6,z:9},{x:-6,z:3},{x:6,z:-3},{x:-6,z:-10},{x:6,z:-11},{x:0,z:3}]},
+  {name:'جسور الفضاء',theme:'ring',par:4,w:24,l:36,start:{x:0,z:16},hole:{x:0,z:-15},
+   walls:[],posts:[{x:0,z:0,r:0.8}],bumps:[{x:0,z:-15,r:2,a:-0.2}],water:[{x:-7,z:6,w:10,l:8},{x:7,z:6,w:10,l:8},{x:-7,z:-6,w:10,l:8},{x:7,z:-6,w:10,l:8}],
+   items:[{x:0,z:10},{x:0,z:-10},{x:-11,z:12},{x:11,z:12},{x:-11,z:-12},{x:11,z:-12}]},
+  {name:'الهالة',theme:'ring',par:4,w:26,l:26,start:{x:-11,z:11},hole:{x:11,z:-11},
+   walls:[{x:-8,z:8,w:1,l:6,h:1},{x:8,z:-8,w:1,l:6,h:1}],posts:[{x:-9,z:-9,r:1},{x:9,z:9,r:1}],bumps:[{x:9,z:-3,r:3,a:0.8},{x:-9,z:3,r:3,a:-0.7}],water:[{x:0,z:0,w:12,l:12}],
+   items:[{x:0,z:10},{x:10,z:0},{x:0,z:-10},{x:-10,z:0},{x:-9,z:-3},{x:9,z:3}]},
+  {name:'الوادي',theme:'classic',par:4,w:18,l:40,start:{x:0,z:18},hole:{x:0,z:-18},
+   walls:[{x:0,z:-12,w:6,l:1,h:1}],posts:[{x:0,z:12,r:0.8}],bumps:[{x:-5,z:8,r:4,a:1.6},{x:5,z:8,r:4,a:1.6},{x:-5,z:-6,r:4,a:1.6},{x:5,z:-6,r:4,a:1.6}],water:[{x:0,z:0,w:4,l:3}],
+   items:[{x:-6,z:14},{x:6,z:14},{x:0,z:4},{x:-6,z:0},{x:6,z:-10},{x:0,z:-15}]}
 ];
 const TRAPS=[
   [{type:'sand',x:5,z:-7,r:2.2},{type:'bump',x:-5,z:5,r:0.6},{type:'spin',x:0,z:-1,hl:2.5,speed:1.4},{type:'wind',x:3,z:-8,w:6,l:5,fx:-1,fz:0,f:7},{type:'spikes',x:4,z:11,w:4,l:0.8,period:2.4}],
@@ -343,7 +375,12 @@ const TRAPS=[
   [{type:'spin',x:0,z:0,hl:1.6,speed:2},{type:'spikes',x:0,z:8,w:3,l:0.8,period:2,hidden:true},{type:'wind',x:0,z:-8,w:4,l:4,fx:1,fz:0,f:5,hidden:true},{type:'bump',x:0,z:15,r:0.6},{type:'sand',x:6,z:16,r:1.8}],
   [{type:'well',x:-2,z:-12,r:2.5},{type:'spikes',x:-9,z:4,w:3,l:0.8,period:2.2},{type:'bump',x:3,z:12,r:0.6,hidden:true},{type:'spin',x:0,z:-4,hl:2,speed:-1.6},{type:'portal',x:-9,z:-14,r:1,to:{x:3,z:-14}},{type:'wind',x:7,z:8,w:5,l:5,fx:1,fz:0,f:6,hidden:true}],
   [{type:'wind',x:-9,z:5,w:5,l:6,fx:1,fz:0,f:6},{type:'spin',x:9,z:-5,hl:1.5,speed:2.4},{type:'well',x:0,z:-11,r:2.2,hidden:true},{type:'spikes',x:10,z:0,w:0.8,l:3,period:2},{type:'portal',x:-10,z:-11,r:1,to:{x:10,z:11}},{type:'portal',x:10,z:11,r:1,to:{x:-10,z:-11}},{type:'bump',x:-4,z:10,r:0.6,hidden:true}],
-  [{type:'spikes',x:5,z:-2,w:6,l:0.8,period:1.8},{type:'spin',x:5,z:-10,hl:2,speed:2},{type:'bump',x:5,z:10,r:0.6,hidden:true},{type:'sand',x:-5,z:10,r:2},{type:'well',x:0,z:-14,r:2},{type:'portal',x:-8,z:14,r:1,to:{x:-8,z:-2}},{type:'wind',x:-5,z:0,w:8,l:4,fx:-1,fz:0,f:5,hidden:true}]
+  [{type:'spikes',x:5,z:-2,w:6,l:0.8,period:1.8},{type:'spin',x:5,z:-10,hl:2,speed:2},{type:'bump',x:5,z:10,r:0.6,hidden:true},{type:'sand',x:-5,z:10,r:2},{type:'well',x:0,z:-14,r:2},{type:'portal',x:-8,z:14,r:1,to:{x:-8,z:-2}},{type:'wind',x:-5,z:0,w:8,l:4,fx:-1,fz:0,f:5,hidden:true}],
+  [{type:'spin',x:-8,z:5,hl:1.2,speed:2},{type:'bump',x:8,z:-7,r:0.6},{type:'wind',x:0,z:-1,w:12,l:4,fx:1,fz:0,f:6},{type:'spikes',x:-6,z:-13,w:3,l:0.8,period:2}],
+  [{type:'well',x:0,z:3,r:2.5},{type:'spin',x:6,z:-3,hl:1.5,speed:-2.2},{type:'spikes',x:-6,z:0,w:3,l:0.8,period:2.2},{type:'portal',x:7,z:12,r:1,to:{x:-7,z:-10}}],
+  [{type:'wind',x:0,z:6,w:4,l:8,fx:1,fz:0,f:6},{type:'spin',x:0,z:-6,hl:1.5,speed:2.5},{type:'portal',x:-11,z:14,r:1,to:{x:11,z:-14}},{type:'sand',x:0,z:12,r:1.8}],
+  [{type:'well',x:0,z:-9,r:2.2},{type:'spikes',x:9,z:3,w:0.8,l:3,period:2},{type:'wind',x:0,z:9,w:8,l:3,fx:0,fz:-1,f:6},{type:'bump',x:-3,z:-9,r:0.6}],
+  [{type:'sand',x:0,z:-16,r:1.6},{type:'spin',x:0,z:6,hl:1.3,speed:2},{type:'bump',x:0,z:-4,r:0.6},{type:'wind',x:0,z:-9,w:8,l:3,fx:1,fz:0,f:5}]
 ];
 const BLOCKS=[
   [{x:5,z:8,r:1.1,kind:'tree'},{x:-6,z:2,r:1,kind:'rock'},{x:6,z:-4,r:0.9,kind:'crate'}],
@@ -355,7 +392,12 @@ const BLOCKS=[
   [{x:0,z:12,r:1,kind:'crate'},{x:0,z:-9,r:1,kind:'rock'}],
   [{x:3,z:4,r:1,kind:'rock'},{x:-8,z:-4,r:1,kind:'tree'},{x:9,z:-8,r:0.9,kind:'crate'}],
   [{x:-10,z:6,r:1,kind:'rock'},{x:10,z:-6,r:1,kind:'rock'},{x:-6,z:-3,r:1,kind:'tree'},{x:6,z:3,r:1,kind:'tree'}],
-  [{x:-5,z:4,r:1,kind:'tree'},{x:5,z:-5,r:1,kind:'rock'},{x:-3,z:-10,r:0.9,kind:'crate'},{x:3,z:12,r:0.9,kind:'crate'}]
+  [{x:-5,z:4,r:1,kind:'tree'},{x:5,z:-5,r:1,kind:'rock'},{x:-3,z:-10,r:0.9,kind:'crate'},{x:3,z:12,r:0.9,kind:'crate'}],
+  [{x:8,z:5,r:1,kind:'tree'},{x:-8,z:-7,r:1,kind:'rock'},{x:0,z:13,r:0.9,kind:'crate'}],
+  [{x:-6,z:9,r:0.9,kind:'crate'},{x:6,z:-9,r:1,kind:'rock'}],
+  [{x:0,z:10,r:1,kind:'tree'},{x:0,z:-10,r:0.9,kind:'crate'}],
+  [{x:-9,z:-3,r:1,kind:'rock'},{x:3,z:9,r:1,kind:'tree'}],
+  [{x:-2,z:12,r:1,kind:'tree'},{x:2,z:12,r:1,kind:'tree'},{x:0,z:-14,r:0.9,kind:'crate'}]
 ];
 const THEMES={
   classic:{icon:'🌿',sky:[[0.30,0.58,0.96],[0.66,0.85,0.99],[0.98,0.93,0.82]],fog:0xcfe6f7,grass:['#5cd166','#4fbf58'],rough:0x3aa048,rail:0xe0b06a,wall:0xb57a44,soil:0x9c7a55,rock:0x7d6f66,water:0x7fd6ff,deep:0x125a90,bank:0xf1dca5,waterEm:0x000000,emI:0,sand:0xf1dca5,flag:0xff7a59,deco:'trees',hazard:'ماء'},
@@ -615,10 +657,11 @@ const SFX=(()=>{let ctx=null,muted=false;try{muted=localStorage.getItem('golf-mu
     spike:()=>{tone(400,0.15,'square',0.1,120);},well:()=>{tone(300,0.6,'sine',0.12,40);},explode:()=>{noise(0.4,0.3,400);tone(60,0.4,'sine',0.2,30);},quake:()=>{noise(0.6,0.3,250);},freeze:()=>{tone(1200,0.3,'sine',0.1,2400);}};
 })();
 document.addEventListener('pointerdown',()=>SFX.unlock(),{once:true});
+function buzz(ms){try{if(IS_MOBILE&&navigator.vibrate&&!SFX.isMuted())navigator.vibrate(ms);}catch(e){}}
 
 // ---------- game state ----------
-const S={state:'start',mode:'solo',hole:0,H:null,players:[],cur:-1,pendingShot:false,armed:{power:false,jump:false,magnet:false,ghost:false,warp:false,giant:false},shake:0,drag:null,botPull:null,overview:false,mines:[],fx:[],stopTimer:0,acc:0,camYaw:0,camPos:V3(0,10,10),camTgt:V3(0,0,0),course:null,shotBy:null,shots:0,ropes:[],trails:[],portals:[],reveals:[],rules:{diff:'normal',turnTime:20,maps:[0,1,2,3,4,5,6,7,8,9]},order:[],seed:1,fans:[],wells:[],spikes:[],camPitch:1.12,camDrag:null,camUserT:0,pickups:[],spinners:[],bumpers:[],waters:[],lastRound:false,finishOrder:[],turnT:TURN_TIME};
-let botCount=3,humCount=2,botCount2=0,holeCount=10;
+const S={state:'start',mode:'solo',hole:0,H:null,players:[],cur:-1,pendingShot:false,armed:{power:false,jump:false,magnet:false,ghost:false,warp:false,giant:false},shake:0,drag:null,botPull:null,overview:false,mines:[],fx:[],stopTimer:0,acc:0,camYaw:0,camPos:V3(0,10,10),camTgt:V3(0,0,0),course:null,shotBy:null,shots:0,ropes:[],trails:[],portals:[],reveals:[],rules:{diff:'normal',turnTime:20,maps:[0,1,2,3,4,5]},order:[],seed:1,fans:[],wells:[],spikes:[],camPitch:1.12,camDrag:null,camUserT:0,pickups:[],spinners:[],bumpers:[],waters:[],lastRound:false,finishOrder:[],turnT:TURN_TIME};
+let botCount=3,humCount=2,botCount2=0,holeCount=6;
 const TT=()=>S.rules.turnTime||20;
 
 const ropeMat=new THREE.LineBasicMaterial({color:0x6b3e1e});
@@ -733,8 +776,9 @@ function buildTrapVisual(C,H,t){const y=heightAt(H,t.x,t.z);const tg=new THREE.G
     else if(t.type==='bump'){const m=new THREE.Mesh(new THREE.CylinderGeometry(t.r,t.r+0.12,0.5,20),new THREE.MeshStandardMaterial({color:0xe85d5d,roughness:.4}));m.position.set(t.x,y+0.25,t.z);m.castShadow=true;tg.add(m);
       const cap=new THREE.Mesh(new THREE.CylinderGeometry(t.r*0.6,t.r*0.6,0.1,20),new THREE.MeshStandardMaterial({color:0xffffff}));cap.position.set(t.x,y+0.52,t.z);tg.add(cap);S.bumpers.push({m,cap,y});}
     else if(t.type==='wind'){const g=new THREE.Group();g.position.set(t.x,y,t.z);
-      const at=arrowTex.clone();at.needsUpdate=true;at.repeat.set(t.w/2.5,t.l/2.5);
-      const pl=new THREE.Mesh(new THREE.PlaneGeometry(t.w,t.l),new THREE.MeshBasicMaterial({map:at,color:0xbfefff,transparent:true,opacity:0.55,depthWrite:false}));pl.rotation.x=-Math.PI/2;pl.rotation.z=Math.atan2(t.fx,t.fz)+Math.PI;pl.position.y=0.02;g.add(pl);
+      const at=arrowTex.clone();at.needsUpdate=true;at.repeat.set(t.w/2.5,t.l/2.5);at.center.set(0.5,0.5);at.rotation=-Math.atan2(t.fx,-t.fz);
+      const pl=new THREE.Mesh(new THREE.PlaneGeometry(t.w,t.l),new THREE.MeshBasicMaterial({map:at,color:0xbfefff,transparent:true,opacity:0.6,depthWrite:false}));pl.rotation.x=-Math.PI/2;pl.position.y=0.02;g.add(pl);
+      const edge=new THREE.Mesh(new THREE.PlaneGeometry(t.w,t.l),new THREE.MeshBasicMaterial({color:0xbfefff,transparent:true,opacity:0.18,depthWrite:false}));edge.rotation.x=-Math.PI/2;edge.position.y=0.015;g.add(edge);
       const fan=new THREE.Group();fan.position.set(-t.fx*(t.w/2+0.6),0.9,-t.fz*(t.l/2+0.6));const hub=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.3,1.8,10),new THREE.MeshStandardMaterial({color:0x5b6b7a}));hub.position.y=0;fan.add(hub);
       const bl=new THREE.Group();bl.position.y=0.9;for(let k=0;k<4;k++){const b=new THREE.Mesh(new THREE.BoxGeometry(0.18,1.4,0.08),new THREE.MeshStandardMaterial({color:0xdfe7ee}));b.rotation.z=k*Math.PI/2;b.position.set(Math.sin(k*Math.PI/2)*0.6,Math.cos(k*Math.PI/2)*0.6,0);bl.add(b);}
       bl.lookAt(new THREE.Vector3(t.fx,0,t.fz).add(bl.position));fan.add(bl);g.add(fan);tg.add(g);S.fans.push({bl,at,t});}
@@ -858,11 +902,12 @@ function makePlayers(list){
     S.players.push({id:k,name:d.name,color,kind:d.kind,peer:d.peer||null,pos:V3(),vel:V3(),vis:V3(),air:false,holed:false,sunk:false,wet:false,strokes:0,total:0,pts:0,st:{bumps:0,treasure:0,aces:0,skills:0,sabotage:0},frozen:false,shield:false,shieldRounds:0,finalShot:false,spawned:false,sk:SKILL_ZERO(),model,label,lastRest:V3()});
   });
 }
-function startSolo(){S.mode='solo';S.seed=Math.floor(Math.random()*1e6);makePlayers([{name:'أنت',kind:'human',skin:mySkin()},...BOT_NAMES.slice(0,botCount).map(n=>({name:n,kind:'bot'}))]);beginGame();}
+function startSolo(){maybeTutorial(()=>{S.mode='solo';S.seed=Math.floor(Math.random()*1e6);makePlayers([{name:'أنت',kind:'human',skin:mySkin()},...BOT_NAMES.slice(0,botCount).map(n=>({name:n,kind:'bot'}))]);beginGame();});}
 function startLocal(){S.mode='local';S.seed=Math.floor(Math.random()*1e6);const l=[];for(let i=0;i<humCount;i++)l.push({name:`لاعب ${i+1}`,kind:'human',skin:i===0?mySkin():SKINS[(i*2)%SKINS.length]});BOT_NAMES.slice(0,botCount2).forEach(n=>l.push({name:n,kind:'bot'}));makePlayers(l);beginGame();}
 let wakeLock=null;
 async function keepAwake(){try{if(navigator.wakeLock&&!wakeLock){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null;});}}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&S.H)keepAwake();});
+function maybeTutorial(cb){let seen=false;try{seen=localStorage.getItem('golf-tut')==='1';}catch(e){}if(seen||S.autoplay){cb();return;}$('#tutBox').classList.remove('hidden');$('#tutOk').onclick=()=>{try{localStorage.setItem('golf-tut','1');}catch(e){}$('#tutBox').classList.add('hidden');cb();};}
 function beginGame(){S.order=(S.rules.maps&&S.rules.maps.length?S.rules.maps:HOLES.map((_,i)=>i)).filter(i=>HOLES[i]);if(!S.order.length)S.order=HOLES.map((_,i)=>i);holeCount=S.order.length;keepAwake();$('#start').classList.add('hidden');$('#lobby').classList.add('hidden');S.shots=0;try{if(!history.state||!history.state.g)history.pushState({g:1},'');}catch(e){}loadHole(0);}
 
 function cur(){return S.players[S.cur];}
@@ -885,7 +930,7 @@ function isLocalHuman(p){return p&&p.kind==='human';}
 function nextTurn(){
   const n=S.players.length;
   let found=-1;
-  for(let k=1;k<=n;k++){const i=(S.cur+k)%n;const q=S.players[i];if(!q.holed&&(!S.lastRound||q.finalShot)){found=i;break;}}
+  for(let k=1;k<=n;k++){const i=(S.cur+k)%n;const q=S.players[i];if(!q.holed&&!q.spectator&&(!S.lastRound||q.finalShot)){found=i;break;}}
   if(found<0){endHole();return;}
   S.cur=found;const p=cur();p.finalShot=false;S.turnT=TT();
   if(!p.spawned)spawnPlayer(p);
@@ -898,6 +943,7 @@ function nextTurn(){
   S.state='aim';S.armed.power=S.armed.jump=S.armed.magnet=S.armed.ghost=S.armed.warp=S.armed.giant=false;
   S.camYaw=Math.atan2(S.H.hole.x-p.pos.x,S.H.hole.z-p.pos.z);
   S.remoteAck=false;S.remoteWait=0;if(S.mode==='online'&&NET.room&&p.kind==='human'){try{NET.room.emit('turn',{id:p.id,hole:S.hole});}catch(e){}}
+  if(S.pendingAck&&S.pendingAck.id===p.id&&S.pendingAck.hole===S.hole){S.remoteAck=true;}S.pendingAck=null;
   updateHUD();
   if(p.kind==='bot')setTimeout(()=>botTurn(p,false),S.autoplay?150:900);
 }
@@ -913,9 +959,10 @@ function doAction(a){
 }
 function applyAction(a){
   const p=cur();if(!p||S.state!=='aim')return;
+  if(a.t!=='skip'){p.missed=0;}
   if(a.t==='shot'){S.armed.jump=!!a.jump&&p.sk.jump>0;S.armed.power=!!a.boost&&p.sk.power>0;S.armed.magnet=!!a.magnet&&p.sk.magnet>0;S.armed.ghost=!!a.ghost&&p.sk.ghost>0;S.armed.warp=!!a.warp&&p.sk.warp>0;S.armed.giant=!!a.giant&&p.sk.giant>0;shoot(p,a.dx,a.dz,a.pw);}
   else if(a.t==='skill'){useSkill(p,a.k,a.target!=null?S.players[a.target]:null,a.rnd);}
-  else if(a.t==='skip'){p.strokes++;toast(`⏱ انتهى وقت ${p.name}: +1 ضربة`);S.state='wait';updateHUD();setTimeout(nextTurn,700);}
+  else if(a.t==='skip'){p.strokes++;p.missed=(p.missed||0)+1;if(p.missed>=2&&p.kind!=='bot'){p.spectator=true;toast(`👁️ ${p.name} غاب دورين وانتقل إلى المشاهدين`);}else toast(`⏱ انتهى وقت ${p.name}: +1 ضربة`);S.state='wait';updateHUD();setTimeout(nextTurn,700);}
 }
 
 function shoot(p,dx,dz,pw){
@@ -940,14 +987,15 @@ function onAllStopped(){
   nextTurn();
 }
 
+function scoreName(st,par){const d=st-par;if(st===1)return 'ضربة واحدة! 🎯';if(d<=-3)return 'ألباتروس 🦅';if(d===-2)return 'إيغل 🦅';if(d===-1)return 'بيردي 🐦';if(d===0)return 'بار';if(d===1)return 'بوغي';if(d===2)return 'دبل بوغي';return `+${d}`;}
 function endHole(){
   S.state='board';
-  S.players.forEach(p=>{p.holePts=0;if(!p.holed){p.strokes+=2;}p.total+=p.strokes;});
+  S.players.forEach(p=>{p.holePts=0;if(!p.holed&&!p.spectator){p.strokes+=2;}if(p.spectator){p.strokes=0;}p.total+=p.strokes;});
   S.finishOrder.forEach((p,i)=>{let b=ORDER_PTS[i]||1;if(p.strokes===1)b+=3;else if(p.strokes<S.H.par)b+=2;else if(p.strokes===S.H.par)b+=1;p.holePts=b;p.pts+=b;});
   const last=S.hole===holeCount-1;
   $('#boardTitle').textContent=last?'النتيجة النهائية':`نتيجة الحفرة ${S.hole+1}: ${S.H.name}`;
   const rows=[...S.players].sort((a,b)=>(b.pts-a.pts)||(a.total-b.total));
-  $('#boardBody').innerHTML=rows.map((p,i)=>`<tr class="${p.kind==='human'&&S.mode!=='local'?'me':''}"><td>${last?['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'][i]+' ':''}${p.name}</td><td class="num">${p.holed?p.strokes:'✗'} <small style="color:var(--muted)">+${p.holePts}★</small></td><td class="num">${p.pts}★ <small style="color:var(--muted)">(${p.total})</small></td></tr>`).join('');
+  $('#boardBody').innerHTML=rows.map((p,i)=>`<tr class="${p.kind==='human'&&S.mode!=='local'?'me':''}"><td>${last?['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'][i]+' ':''}${p.name}</td><td class="num">${p.holed?p.strokes:'✗'} <small style="color:var(--muted)">${p.holed?scoreName(p.strokes,S.H.par):'لم يُدخلها'} · +${p.holePts}★</small></td><td class="num">${p.pts}★ <small style="color:var(--muted)">(${p.total})</small></td></tr>`).join('');
   const ach=$('#achievements');if(last){const pick=(fn,label,icon)=>{let best=null,bv=0;S.players.forEach(p=>{const v=fn(p);if(v>bv){bv=v;best=p;}});return best?`<span class="ach">${icon} ${label}: <b>${best.name}</b> (${bv})</span>`:'';};
     const champ=rows[0];const me=S.players.find(p=>p.kind==='human');let bestTxt='';
     if(me){try{const prev=JSON.parse(localStorage.getItem('golf-best')||'null');if(!prev||me.pts>prev.pts){localStorage.setItem('golf-best',JSON.stringify({pts:me.pts,strokes:me.total,d:Date.now()}));bestTxt=`<span class="ach new">🏅 رقم قياسي جديد لك: ${me.pts}★</span>`;}else bestTxt=`<span class="ach">🏅 أفضل نتيجة لك: ${prev.pts}★</span>`;}catch(e){}}
@@ -1024,7 +1072,7 @@ function placePickup(id,x,z){
 }
 function pickKey(b,u){const keys=Object.keys(SKILL_MAX);let h=((S.hole+1)*73856093)^((u.id+1)*19349663)^((b.id+1)*83492791)^((b.strokes+1)*49979687);h=(h>>>0)%keys.length;return keys[h];}
 function explode(at){
-  burst(at,30,0xff8c1a,1.6);S.shake=0.5;SFX.explode();
+  burst(at,30,0xff8c1a,1.6);S.shake=0.5;SFX.explode();buzz([30,40,60]);
   const m=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),new THREE.MeshBasicMaterial({color:0xff8c1a,transparent:true,opacity:0.8}));
   m.position.copy(at);m.position.y+=0.5;scene.add(m);S.fx.push({mesh:m,t:0,life:0.45});
 }
@@ -1079,7 +1127,7 @@ function updateHUD(){
   ti.firstChild.textContent=p?(p.kind==='human'?(S.mode==='local'?`دور ${p.name}`:'دورك!'):`دور ${p.name}`):'—';
   ti.classList.toggle('me',!!(p&&p.kind==='human'));
   $('#strokeInfo').textContent=p?`ضربات: ${p.strokes}`:'';
-  $('#players').innerHTML=S.players.map(q=>`<div class="pl ${q===p?'cur':''} ${q.holed?'holed':''}"><span class="dot" style="background:${hex(q.color)}"></span>${q.name} <b>${q.pts}★</b> <span style="color:var(--muted)">${q.strokes}</span>${q.holed?' ⛳':''}${q.frozen?' ❄️':''}${q.shield?' 🛡️':''}</div>`).join('');
+  $('#players').innerHTML=S.players.map(q=>`<div class="pl ${q===p?'cur':''} ${q.holed?'holed':''}"><span class="dot" style="background:${hex(q.color)}"></span>${q.name} <b>${q.pts}★</b> <span style="color:var(--muted)">${q.strokes}</span>${q.holed?' ⛳':''}${q.spectator?' 👁️':''}${q.kind==='remote'&&q.ping!=null?` <span style="color:var(--muted)">${q.ping}ms</span>`:''}${q.frozen?' ❄️':''}${q.shield?' 🛡️':''}</div>`).join('');
   {const owner=(p&&p.kind==='human')?p:(S.mode==='local'?null:S.players.find(q=>q.kind==='human'));
    const keys=owner?Object.keys(SKILLS).filter(k=>owner.sk[k]>0):[];
    $('#skills').innerHTML=keys.length?keys.map(k=>`<button type="button" class="sk ${S.armed[k]?'armed':''}" data-k="${k}" ${!mine?'disabled':''}><span class="ic">${SKILLS[k].icon}</span>${SKILLS[k].name}<span class="n">${owner.sk[k]}</span></button>`).join(''):(owner?'<div class="nosk">لا مهارات بعد · اصطدم بالصناديق ❓ لتكسبها</div>':'');}
@@ -1127,39 +1175,72 @@ $('#startSolo').addEventListener('click',startSolo);
 $('#startLocal').addEventListener('click',startLocal);
 
 // ---------- online rooms ----------
-const NET={api:null,room:null,me:null,code:'',unsub:[],seq:0,lastSeq:-1,busy:false};
+const NET={api:null,room:null,me:null,code:'',unsub:[],seq:0,lastSeq:-1,busy:false,pw:'',token:''};
+try{NET.token=localStorage.getItem('golf-token')||'';if(!NET.token){NET.token=Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('golf-token',NET.token);}}catch(e){NET.token='t'+Math.random().toString(36).slice(2);}
+function saveSession(code){try{localStorage.setItem('golf-session',JSON.stringify({code,pw:NET.pw||'',name:($('#nick').value||'').trim(),ts:Date.now()}));}catch(e){}}
+function loadSession(){try{const s=JSON.parse(localStorage.getItem('golf-session')||'null');if(s&&s.code&&Date.now()-s.ts<3*3600*1000)return s;}catch(e){}return null;}
+function clearSession(){try{localStorage.removeItem('golf-session');}catch(e){}}
 const P2P={mode:false};
+const DIR_ID='golfr-dir-v3';const DIR={peer:null,conn:null,isDir:false,rooms:{},timer:null,reg:null};
+function dirHandle(c,d){if(!d||typeof d!=='object')return;
+  if(d.t==='reg'){const code=String(d.code||'').slice(0,8);if(!code)return;DIR.rooms[code]={code,name:String(d.name||'غرفة').slice(0,16),players:d.players|0,locked:!!d.locked,playing:!!d.playing,ts:Date.now(),peer:c.peer};}
+  else if(d.t==='unreg'){const code=String(d.code||'');if(DIR.rooms[code]&&DIR.rooms[code].peer===c.peer)delete DIR.rooms[code];}
+  else if(d.t==='list'){const now=Date.now();const rooms=Object.values(DIR.rooms).filter(r=>now-r.ts<25000).map(r=>({code:r.code,name:r.name,players:r.players,locked:r.locked,playing:r.playing}));try{c.send({t:'rooms',rooms});}catch(e){}}}
+function dirClaim(){if(DIR.isDir||DIR.peer)return;try{const p=new Peer(DIR_ID,{debug:0});DIR.peer=p;p.on('open',()=>{DIR.isDir=true;});p.on('connection',c=>{c.on('data',d=>dirHandle(c,d));c.on('close',()=>{Object.keys(DIR.rooms).forEach(k=>{if(DIR.rooms[k].peer===c.peer)delete DIR.rooms[k];});});});p.on('error',e=>{if(e&&e.type==='unavailable-id'){try{p.destroy();}catch(x){}DIR.peer=null;DIR.isDir=false;}});}catch(e){DIR.peer=null;}}
+function dirOpen(cb){if(DIR.isDir){cb({local:true});return;}if(DIR.conn&&DIR.conn.open){cb(DIR.conn);return;}
+  let done=false;const fin=v=>{if(!done){done=true;cb(v);}};
+  try{const p=new Peer({debug:0});p.on('open',()=>{const c=p.connect(DIR_ID,{reliable:true});c.on('open',()=>{DIR.conn=c;fin(c);});c.on('close',()=>{if(DIR.conn===c)DIR.conn=null;});setTimeout(()=>fin(null),6000);});p.on('error',e=>{if(e&&e.type==='peer-unavailable'){try{p.destroy();}catch(x){}dirClaim();fin(null);}else fin(null);});}catch(e){fin(null);}}
+function dirRegister(){if(!NET.room||!NET.room.isHost||!NET.room.isHost())return;const msg={t:'reg',code:NET.code,name:(S.players.find(q=>q.kind==='human')||{}).name||($('#nick').value||'غرفة').trim().slice(0,16),players:seats().length,locked:!!NET.pw,playing:S.mode==='online'&&S.state!=='start'&&S.H?true:false};
+  if(DIR.isDir){dirHandle({peer:'self'},msg);return;}dirOpen(c=>{if(c&&c.send){try{c.send(msg);}catch(e){}}});}
+function dirUnregister(){if(!NET.code)return;if(DIR.isDir){delete DIR.rooms[NET.code];return;}if(DIR.conn&&DIR.conn.open){try{DIR.conn.send({t:'unreg',code:NET.code});}catch(e){}}}
+function dirList(cb){if(DIR.isDir){dirHandle({peer:'self',send:d=>cb(d.rooms||[])},{t:'list'});return;}dirOpen(c=>{if(!c||!c.send){cb(null);return;}const h=d=>{if(d&&d.t==='rooms'){c.off('data',h);cb(Array.isArray(d.rooms)?d.rooms:[]);}};c.on('data',h);try{c.send({t:'list'});}catch(e){cb(null);}setTimeout(()=>{c.off('data',h);},5000);});}
 function loadScript(src){return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src=src;sc.onload=res;sc.onerror=rej;document.head.appendChild(sc);});}
 // Peer-to-peer rooms (WebRTC via PeerJS): the room creator hosts, others connect to the host by room code.
-function makeP2PRoom(code,host){
-  const handlers={},peersList=[],conns=[],onPeersFns=[];let me=null,open=false,hostConn=null,peerObj=null;
-  const snap=()=>peersList.map(q=>({peer:q.peer,presence:{name:q.name,at:q.at},isMe:q.peer===me,sameTab:q.peer===me,by:null,kind:'viewer',guest:false}));
+function makeP2PRoom(code,host,pw){
+  const handlers={},peersList=[],conns=[],onPeersFns=[];let me=null,open=false,hostConn=null,peerObj=null;const tokens={};let pingTimer=null;
+  const snap=()=>peersList.map(q=>({peer:q.peer,presence:{name:q.name,at:q.at,skin:q.skin,ping:q.ping},isMe:q.peer===me,sameTab:q.peer===me,by:null,kind:'viewer',guest:false}));
   const emitPeers=()=>{const ps=snap();onPeersFns.forEach(f=>{try{f({peers:ps,joined:[],left:[],updated:[]});}catch(e){}});};
   const dispatch=(topic,data,from)=>{(handlers[topic]||[]).forEach(f=>{try{f({topic,data,peer:from,by:null,isMe:from===me,sameTab:false,kind:'viewer',guest:false});}catch(e){}});};
   const hostBroadcast=(obj,except)=>{conns.forEach(c=>{if(c!==except&&c.open){try{c.send(obj);}catch(e){}}});};
   const hostHandle=(c,d)=>{if(!d||typeof d!=='object')return;
-    if(d.t==='hello'){const nm=String(d.name||'لاعب').slice(0,14);const ex=peersList.find(q=>q.peer===c.peer);if(ex)ex.name=nm;else peersList.push({peer:c.peer,name:nm,at:Date.now()});hostBroadcast({t:'lobby',players:peersList});emitPeers();return;}
+    if(d.t==='hello'){
+      if(pw&&String(d.pw||'')!==pw){try{c.send({t:'deny',why:'كلمة المرور خاطئة'});}catch(e){}setTimeout(()=>{try{c.close();}catch(e){}},300);return;}
+      const nm=String(d.name||'لاعب').slice(0,14);const tok=String(d.token||'');tokens[c.peer]=tok;
+      // returning player: re-seat them into the running game
+      const seated=tok&&S.mode==='online'&&S.players.find(q=>q.token===tok);
+      if(seated&&seated.peer!==c.peer){const old=seated.peer;seated.peer=c.peer;seated.spectator=false;seated.missed=0;const i=peersList.findIndex(q=>q.peer===old);if(i>=0)peersList[i].peer=c.peer;
+        const start={players:S.players.map(q=>({peer:q.peer,name:q.name,skin:q.skinId||'classic'})),rules:S.rules,seed:S.seed,resume:true};
+        try{c.send({t:'resume',you:c.peer,start,snap:makeSnap(),hole:S.hole});}catch(e){}
+        hostBroadcast({t:'reseat',id:seated.id,peer:c.peer},c);dispatch('reseat',{id:seated.id,peer:c.peer},c.peer);toast(`↩️ ${seated.name} عاد إلى المباراة`);}
+      const ex=peersList.find(q=>q.peer===c.peer);if(ex){ex.name=nm;ex.skin=d.skin;}else peersList.push({peer:c.peer,name:nm,at:Date.now(),skin:d.skin});
+      hostBroadcast({t:'lobby',players:peersList});emitPeers();return;}
+    if(d.t==='pong'){const q=peersList.find(x=>x.peer===c.peer);if(q){q.ping=Math.max(1,Math.round(performance.now()-(+d.ts||0)));}return;}
     if(d.t==='ev'&&typeof d.topic==='string'){const from=c.peer;hostBroadcast({t:'ev',topic:d.topic,data:d.data,from},c);dispatch(d.topic,d.data,from);}};
   const clientHandle=d=>{if(!d||typeof d!=='object')return;
-    if(d.t==='lobby'){peersList.length=0;(Array.isArray(d.players)?d.players:[]).slice(0,8).forEach(q=>peersList.push({peer:String(q.peer),name:String(q.name||'لاعب').slice(0,14),at:+q.at||0}));emitPeers();return;}
+    if(d.t==='lobby'){peersList.length=0;(Array.isArray(d.players)?d.players:[]).slice(0,8).forEach(q=>peersList.push({peer:String(q.peer),name:String(q.name||'لاعب').slice(0,14),at:+q.at||0,skin:q.skin,ping:q.ping}));emitPeers();return;}
+    if(d.t==='ping'){try{hostConn.send({t:'pong',ts:d.ts});}catch(e){}return;}
+    if(d.t==='deny'){toast('⛔ '+String(d.why||'رُفض الدخول'));setTimeout(()=>{if(typeof goHome==='function')goHome();},1200);return;}
+    if(d.t==='resume'){if(d.you)NET.me=String(d.you);dispatch('resume',d,'host');return;}
+    if(d.t==='reseat'){dispatch('reseat',d,'host');return;}
     if(d.t==='ev'&&typeof d.topic==='string'){dispatch(d.topic,d.data,String(d.from||''));}};
   const room={name:code,
     on(topic,fn){(handlers[topic]=handlers[topic]||[]).push(fn);return()=>{handlers[topic]=(handlers[topic]||[]).filter(x=>x!==fn);};},
     onPeers(fn){onPeersFns.push(fn);setTimeout(emitPeers,0);return()=>{const i=onPeersFns.indexOf(fn);if(i>=0)onPeersFns.splice(i,1);};},
     peers(){return snap();},
     connected(){return open;},
-    async presence(patch){const q=peersList.find(x=>x.peer===me);if(q&&patch&&patch.name)q.name=String(patch.name).slice(0,14);if(host){hostBroadcast({t:'lobby',players:peersList});emitPeers();}else if(hostConn&&hostConn.open){hostConn.send({t:'hello',name:patch&&patch.name});}},
+    async presence(patch){const q=peersList.find(x=>x.peer===me);if(q&&patch&&patch.name)q.name=String(patch.name).slice(0,14);if(q&&patch&&patch.skin)q.skin=patch.skin;if(host){hostBroadcast({t:'lobby',players:peersList});emitPeers();}else if(hostConn&&hostConn.open){hostConn.send({t:'hello',name:(patch&&patch.name)||(q&&q.name)||'لاعب',skin:(patch&&patch.skin)||(q&&q.skin),token:NET.token,pw:NET.pw||''});}},
     async emit(topic,data){const obj={t:'ev',topic,data,from:me};if(host)hostBroadcast(obj);else if(hostConn&&hostConn.open)hostConn.send(obj);},
-    async leave(){open=false;try{peerObj&&peerObj.destroy();}catch(e){}}
+    async leave(){open=false;clearInterval(pingTimer);dirUnregister();try{peerObj&&peerObj.destroy();}catch(e){}},
+    isHost(){return !!host;},tokenOf(peer){return tokens[peer]||'';}
   };
   return new Promise((resolve,reject)=>{
     const id='golfr-'+code.toLowerCase();let settled=false;
     const fail=msg=>{if(settled)return;settled=true;try{peerObj&&peerObj.destroy();}catch(e){}reject({code:msg});};
     try{peerObj=host?new Peer(id,{debug:0}):new Peer({debug:0});}catch(e){fail('تعذر تشغيل الاتصال');return;}
     peerObj.on('open',pid=>{me=pid;
-      if(host){open=true;peersList.push({peer:me,name:'',at:Date.now()});settled=true;resolve(room);return;}
+      if(host){open=true;peersList.push({peer:me,name:'',at:Date.now(),ping:0});pingTimer=setInterval(()=>{conns.forEach(c=>{if(c.open){try{c.send({t:'ping',ts:performance.now()});}catch(e){}}});hostBroadcast({t:'lobby',players:peersList});emitPeers();},3000);settled=true;resolve(room);return;}
       hostConn=peerObj.connect(id,{reliable:true});
-      hostConn.on('open',()=>{open=true;settled=true;resolve(room);});
+      hostConn.on('open',()=>{open=true;settled=true;try{hostConn.send({t:'hello',name:'لاعب',token:NET.token,pw:NET.pw||''});}catch(e){}resolve(room);});
       hostConn.on('data',clientHandle);
       hostConn.on('close',()=>{open=false;toast('انقطع الاتصال بصاحب الغرفة، سيُعاد فتح الشاشة الرئيسية');setTimeout(()=>{if(typeof goHome==='function')goHome();},2500);});
       setTimeout(()=>fail('لم يُعثر على الغرفة، تأكد من الرمز'),12000);
@@ -1172,7 +1253,7 @@ async function netInit(){
   try{NET.api=(window.claude&&typeof window.claude.use==='function')?await window.claude.use('room'):null;}catch(e){NET.api=null;}
   const st=$('#netStatus');
   if(NET.api){st.textContent='العب مع أصدقائك من هواتفهم. أنشئ غرفة وشارك الرمز، أو انضم برمز غرفة موجودة. يحتاج أصدقاؤك أن تكون الصفحة مشاركة معهم بصلاحية Contributor وأن يفتحوها بحساب Claude.';$('#netForm').classList.remove('hidden');return;}
-  try{await loadScript('https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js');if(typeof Peer!=='function')throw 0;P2P.mode=true;NET.api={};st.textContent='العب مع أصدقائك من هواتفهم باتصال مباشر بلا حسابات: أنشئ غرفة وشارك الرمز، أو انضم برمز غرفة موجودة. صاحب الغرفة يجب أن يبقى فاتحاً اللعبة طوال الجولة.';$('#netForm').classList.remove('hidden');}
+  try{await loadScript('https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js');if(typeof Peer!=='function')throw 0;P2P.mode=true;NET.api={};const ss=loadSession();if(ss)$('#resumeBtn').classList.remove('hidden');setTimeout(()=>dirList(renderRooms),1200);st.textContent='العب مع أصدقائك من هواتفهم باتصال مباشر بلا حسابات: أنشئ غرفة (بكلمة مرور إن شئت) أو انضم من قائمة الغرف المفتوحة أو برمز. البيانات تمر مباشرة بين الأجهزة ويظهر البينغ لكل لاعب. صاحب الغرفة يجب أن يبقى فاتحاً اللعبة، ومن يخرج يستطيع العودة إلى المباراة من نفس الجهاز.';$('#netForm').classList.remove('hidden');}
   catch(e){st.textContent='اللعب الأونلاين غير متاح هنا. يمكنك اللعب ضد الكمبيوتر أو على نفس الجهاز.';}
 }
 function genCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<6;i++)s+=a[Math.floor(Math.random()*a.length)];return s;}
@@ -1182,17 +1263,20 @@ async function enterRoom(code,isHost){
   if(code.length<4){toast('اكتب رمز غرفة من 4 إلى 6 أحرف');return;}
   if(NET.busy)return;NET.busy=true;
   try{
-    const r=P2P.mode?await makeP2PRoom(code,!!isHost):await NET.api.join('golf-'+code.toLowerCase());
+    NET.pw=isHost?(($('#roomPw').value||'').trim().slice(0,20)):(($('#roomPw').value||'').trim().slice(0,20));
+    const r=P2P.mode?await makeP2PRoom(code,!!isHost,isHost?NET.pw:''):await NET.api.join('golf-'+code.toLowerCase());
     NET.room=r;NET.code=code;NET.me=null;
     NET.unsub.push(r.onPeers(ch=>{const me=ch.peers.find(p=>p.isMe&&p.sameTab);if(me)NET.me=me.peer;renderLobby();}));
     NET.unsub.push(r.on('start',m=>{if(m.sameTab)return;onNetStart(m.data);}));
     NET.unsub.push(r.on('act',m=>{if(m.sameTab)return;onNetAct(m.data);}));
     NET.unsub.push(r.on('msg',m=>{if(m.sameTab)return;onNetMsg(m);}));
     NET.unsub.push(r.on('emote',m=>{if(m.sameTab)return;const q=S.players.find(x=>x.peer===m.peer);const e=String((m.data||{}).e||'');if(q&&EMOTES.includes(e))showEmote(q,e);}));
-    NET.unsub.push(r.on('turn',m=>{if(m.sameTab)return;const d=m.data||{};const q=S.players[d.id|0];if(q&&q.peer===m.peer&&S.cur>=0&&cur()===q&&q.kind==='remote'){S.remoteAck=true;S.turnT=TT();}}));
+    NET.unsub.push(r.on('resume',m=>{const d=m.data||{};if(!d.start)return;toast('↩️ عدتَ إلى المباراة');onNetStart(Object.assign({},d.start,{resume:true}));if(d.snap){setTimeout(()=>{applySnap(d.snap);},300);}}));
+    NET.unsub.push(r.on('reseat',m=>{const d=m.data||{};const q=S.players[d.id|0];if(q&&d.peer){q.peer=String(d.peer);if(q.kind!=='human')q.kind='remote';q.spectator=false;q.missed=0;updateHUD();}}));
+    NET.unsub.push(r.on('turn',m=>{if(m.sameTab)return;const d=m.data||{};const q=S.players[d.id|0];if(q&&q.peer===m.peer&&q.kind==='remote'){if(S.cur>=0&&cur()===q){S.remoteAck=true;S.turnT=TT();}else S.pendingAck={id:q.id,hole:d.hole|0};}}));
     NET.unsub.push(r.on('rules',m=>{if(m.sameTab)return;const l=seats();if(l[0]&&l[0].peer===m.peer){S.rules=sanitizeRules(m.data);renderRules();}}));
     await r.presence({name:name.slice(0,14),at:Date.now(),v:1,skin:mySkin()});
-    $('#lobbyCode').textContent=code;
+    $('#lobbyCode').textContent=code;clearInterval(DIR.reg);if(isHost){dirRegister();DIR.reg=setInterval(dirRegister,8000);}saveSession(code);
     $('#start').classList.add('hidden');$('#lobby').classList.remove('hidden');$('#msgBtn').classList.remove('hidden');
     renderLobby();moveRules('#rulesSlotLobby');setTimeout(broadcastRules,800);
   }catch(e){toast('تعذر الدخول إلى الغرفة: '+(e&&e.code?e.code:'خطأ'));console.warn(e);}
@@ -1206,12 +1290,18 @@ function renderLobby(){
   if(!NET.room)return;
   const list=seats();
   const host=list[0];const iAmHost=!!(host&&host.peer===NET.me);
-  $('#lobbyList').innerHTML=list.map((p,i)=>`<div class="pl"><span class="dot" style="background:${hex(COLORS[i%COLORS.length])}"></span>${esc(String(p.presence.name))}${p.peer===NET.me?' (أنت)':''}${i===0?' 👑':''}</div>`).join('')||'<div class="pl">…</div>';
+  $('#lobbyList').innerHTML=list.map((p,i)=>`<div class="pl"><span class="dot" style="background:${hex(COLORS[i%COLORS.length])}"></span>${esc(String(p.presence.name))}${p.peer===NET.me?' (أنت)':''}${i===0?' 👑':''}${p.presence.ping!=null&&i>0?` <small style="color:var(--muted)">📶 ${p.presence.ping}ms</small>`:''}</div>`).join('')||'<div class="pl">…</div>';
   $('#lobbyMsg').textContent=iAmHost?(list.length<2?'بانتظار لاعب آخر على الأقل… يمكنك البدء وحدك للتجربة.':'الكل جاهز، اضغط ابدأ.'):'بانتظار صاحب الغرفة 👑 ليبدأ…';
   $('#lobbyStart').disabled=!iAmHost||!NET.room.connected();$('#rulesBox').classList.toggle('ro',!iAmHost);
 }
 function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 $('#createRoom').addEventListener('click',()=>{const c=genCode();$('#roomCode').value=c;enterRoom(c,true);});
+function renderRooms(list){const el=$('#roomList');if(list===null){el.innerHTML='<div class="pl">لا يوجد دليل غرف متاح الآن. أنشئ غرفة لتصبح أول من يفتح الدليل.</div>';return;}
+  if(!list.length){el.innerHTML='<div class="pl">لا توجد غرف مفتوحة حالياً</div>';return;}
+  el.innerHTML=list.map(r=>`<button type="button" class="pl" data-code="${esc(r.code)}" data-locked="${r.locked?1:0}" style="width:100%;justify-content:space-between;cursor:pointer;border:1px solid var(--line)"><span>${r.locked?'🔒':'🟢'} ${esc(r.name)} <small style="color:var(--muted)">${esc(r.code)}</small></span><span>${r.players|0} لاعب${r.playing?' · تلعب الآن':''}</span></button>`).join('');}
+$('#refreshRooms').addEventListener('click',()=>{if(!P2P.mode){toast('قائمة الغرف متاحة في النسخة المستقلة فقط');return;}$('#roomList').innerHTML='<div class="pl">جارٍ البحث…</div>';dirList(renderRooms);});
+$('#roomList').addEventListener('click',e=>{const b=e.target.closest('button[data-code]');if(!b)return;$('#roomCode').value=b.dataset.code;if(b.dataset.locked==='1'&&!($('#roomPw').value||'').trim()){toast('🔒 هذه الغرفة بكلمة مرور، اكتبها ثم اضغط انضمام');$('#roomPw').focus();return;}enterRoom(b.dataset.code,false);});
+$('#resumeBtn').addEventListener('click',()=>{const ss=loadSession();if(!ss){toast('لا توجد مباراة محفوظة');return;}$('#roomCode').value=ss.code;if(ss.pw&&!($('#roomPw').value||'').trim())$('#roomPw').value=ss.pw;if(ss.name&&!($('#nick').value||'').trim())$('#nick').value=ss.name;enterRoom(ss.code,false);});
 $('#joinRoom').addEventListener('click',()=>enterRoom($('#roomCode').value,false));
 $('#lobbyStart').addEventListener('click',()=>{
   const data={players:seats().map(p=>({peer:p.peer,name:String(p.presence.name).slice(0,14),skin:SKINS.includes(p.presence.skin)?p.presence.skin:'classic'})),rules:S.rules,seed:Math.floor(Math.random()*1e6)};
@@ -1229,7 +1319,7 @@ $('#inviteBtn').addEventListener('click',()=>{const txt=`العب معي غول�
 $('#lobbyLeave').addEventListener('click',async()=>{
   NET.unsub.forEach(u=>{try{u();}catch(e){}});NET.unsub=[];
   if(NET.room){try{await NET.room.leave();}catch(e){}}
-  NET.room=null;$('#lobby').classList.add('hidden');$('#start').classList.remove('hidden');$('#msgBtn').classList.add('hidden');
+  NET.room=null;clearInterval(DIR.reg);clearSession();$('#lobby').classList.add('hidden');$('#start').classList.remove('hidden');$('#msgBtn').classList.add('hidden');
 });
 function nameOfPeer(peer){const p=S.players.find(q=>q.peer===peer);if(p)return p.name;const r=NET.room&&NET.room.peers().find(q=>q.peer===peer);return r&&r.presence&&typeof r.presence.name==='string'?String(r.presence.name).slice(0,14):'لاعب';}
 function onNetMsg(m){const d=(m&&m.data)||{};const from=nameOfPeer(m.peer);
@@ -1245,7 +1335,7 @@ function openMsgBox(){if(!NET.room)return;const list=S.players.length?S.players.
 $('#msgBtn').addEventListener('click',openMsgBox);
 function openMenu(){$('#menuMsg').disabled=!NET.room;$('#menuMsgHint').textContent=NET.room?'أرسل رسالة لا يقرأها إلا المستلم':'متاحة في وضع الأونلاين';$('#menu').classList.remove('hidden');}
 function goHome(){clearTimeout(S.autoNext);['#menu','#board','#picker','#msgBox','#lobby','#inbox'].forEach(x=>$(x).classList.add('hidden'));
-  if(NET.room){NET.unsub.forEach(u=>{try{u();}catch(e){}});NET.unsub=[];try{NET.room.leave();}catch(e){}NET.room=null;$('#msgBtn').classList.add('hidden');}
+  if(NET.room){NET.unsub.forEach(u=>{try{u();}catch(e){}});NET.unsub=[];try{NET.room.leave();}catch(e){}NET.room=null;clearInterval(DIR.reg);clearSession();$('#msgBtn').classList.add('hidden');}
   S.players.forEach(q=>{q.model.g.visible=false;q.label.visible=false;});S.ropes.forEach(r=>scene.remove(r.line));S.ropes=[];S.drag=null;S.botPull=null;S.state='start';S.cur=-1;S.mode='solo';
   $('#start').classList.remove('hidden');updateHUD();}
 $('#menuBtn').addEventListener('click',openMenu);
@@ -1262,13 +1352,15 @@ $('#msgSend').addEventListener('click',()=>{const text=($('#msgText').value||'')
 function sanitizeRules(r){r=r&&typeof r==='object'?r:{};const diff=['normal','hard','insane'].includes(r.diff)?r.diff:'normal';const tt=[10,20,30].includes(+r.turnTime)?+r.turnTime:20;let maps=Array.isArray(r.maps)?r.maps.map(x=>x|0).filter((x,i,a)=>x>=0&&x<HOLES.length&&a.indexOf(x)===i):[];if(!maps.length)maps=HOLES.map((_,i)=>i);return {diff,turnTime:tt,maps};}
 function onNetStart(data){
   if(!data||!Array.isArray(data.players))return;
+  if(data.resume&&S.mode==='online'&&S.H&&S.players.length===data.players.length){S.players.forEach((q,i)=>{const d=data.players[i];if(d&&d.peer){q.peer=String(d.peer);q.kind=q.peer===NET.me?'human':'remote';}});updateHUD();return;}
   S.mode='online';NET.seq=0;NET.lastSeq=-1;S.rules=sanitizeRules(data.rules);S.seed=(data.seed|0)||1;renderRules();
   makePlayers(data.players.slice(0,6).map(d=>({name:String(d.name||'لاعب').slice(0,14),kind:d.peer===NET.me?'human':'remote',peer:d.peer,skin:SKINS.includes(d.skin)?d.skin:'classic'})));
+  S.players.forEach((q,i)=>{const d=data.players[i];q.skinId=d&&d.skin||'classic';if(NET.room&&NET.room.isHost&&NET.room.isHost()&&q.peer)q.token=NET.room.tokenOf(q.peer)||(q.peer===NET.me?NET.token:'');});
   if(!S.players.some(p=>p.kind==='human'))toast('أنت تشاهد هذه الجولة؛ ستلعب في الجولة القادمة');
   beginGame();
 }
 function makeSnap(){
-  return {hole:S.hole,cur:S.cur,players:S.players.map(p=>({x:+p.pos.x.toFixed(3),z:+p.pos.z.toFixed(3),s:p.strokes,t:p.total,p:p.pts,sp:p.spawned?1:0,cu:p.cursed?1:0,st:[p.st.bumps,p.st.treasure,p.st.aces,p.st.skills,p.st.sabotage],h:p.holed?1:0,f:p.frozen?1:0,sh:p.shield?1:0,sr:p.shieldRounds,fs:p.finalShot?1:0,sk:p.sk})),mines:S.mines.map(m=>({o:m.owner.id,x:+m.pos.x.toFixed(2),z:+m.pos.z.toFixed(2)})),lr:S.lastRound?1:0,fo:S.finishOrder.map(p=>p.id),pk:S.pickups.map(u=>u.id),rp:S.ropes.map(r=>({a:r.a.id,b:r.b.id,l:r.left})),ht:+((S.H&&S.H.t)||0).toFixed(3),tw:(S.H.traps||[]).filter(t=>t.temp!=null).map(t=>({x:+t.x.toFixed(2),z:+t.z.toFixed(2),o:t.owner,temp:t.temp})),tf:S.treasureFound?1:0,hh:S.holeHidden?1:0,bk:(S.H.blocks||[]).map(b=>b.dead?1:0),rv:S.H.walls.map(w=>w.revealed?1:0),rt:(S.H.traps||[]).map(t=>t.revealed?1:0)};
+  return {hole:S.hole,cur:S.cur,players:S.players.map(p=>({x:+p.pos.x.toFixed(3),z:+p.pos.z.toFixed(3),s:p.strokes,t:p.total,p:p.pts,sp:p.spawned?1:0,cu:p.cursed?1:0,spc:p.spectator?1:0,ms:p.missed|0,st:[p.st.bumps,p.st.treasure,p.st.aces,p.st.skills,p.st.sabotage],h:p.holed?1:0,f:p.frozen?1:0,sh:p.shield?1:0,sr:p.shieldRounds,fs:p.finalShot?1:0,sk:p.sk})),mines:S.mines.map(m=>({o:m.owner.id,x:+m.pos.x.toFixed(2),z:+m.pos.z.toFixed(2)})),lr:S.lastRound?1:0,fo:S.finishOrder.map(p=>p.id),pk:S.pickups.map(u=>u.id),rp:S.ropes.map(r=>({a:r.a.id,b:r.b.id,l:r.left})),ht:+((S.H&&S.H.t)||0).toFixed(3),tw:(S.H.traps||[]).filter(t=>t.temp!=null).map(t=>({x:+t.x.toFixed(2),z:+t.z.toFixed(2),o:t.owner,temp:t.temp})),tf:S.treasureFound?1:0,hh:S.holeHidden?1:0,bk:(S.H.blocks||[]).map(b=>b.dead?1:0),rv:S.H.walls.map(w=>w.revealed?1:0),rt:(S.H.traps||[]).map(t=>t.revealed?1:0)};
 }
 function applySnap(sn){
   if(!sn||!Array.isArray(sn.players)||sn.players.length!==S.players.length)return false;
@@ -1279,7 +1371,7 @@ function applySnap(sn){
   S.players.forEach((p,i)=>{const d=sn.players[i];const wasVis=p.model.g.visible&&p.spawned&&!p.holed;const ox=p.model.g.position.x,oz=p.model.g.position.z;
     p.pos.set(+d.x||0,0,+d.z||0);p.pos.y=heightAt(S.H,p.pos.x,p.pos.z);p.vel.set(0,0,0);p.air=false;p.wet=false;p.prev=null;
     if(wasVis&&!!d.sp&&!d.h){p.vis.set(ox-p.pos.x,0,oz-p.pos.z);if(p.vis.length()>14)p.vis.set(0,0,0);}else p.vis.set(0,0,0);
-    p.strokes=d.s|0;p.total=d.t|0;p.pts=d.p|0;p.spawned=!!d.sp;p.cursed=!!d.cu;if(Array.isArray(d.st)){p.st.bumps=d.st[0]|0;p.st.treasure=d.st[1]|0;p.st.aces=d.st[2]|0;p.st.skills=d.st[3]|0;p.st.sabotage=d.st[4]|0;}p.popT=null;p.finalShot=!!d.fs;p.holed=!!d.h;p.sunk=p.holed;p.frozen=!!d.f;p.shield=!!d.sh;p.shieldRounds=d.sr|0;
+    p.strokes=d.s|0;p.total=d.t|0;p.pts=d.p|0;p.spawned=!!d.sp;p.cursed=!!d.cu;p.spectator=!!d.spc;p.missed=d.ms|0;if(Array.isArray(d.st)){p.st.bumps=d.st[0]|0;p.st.treasure=d.st[1]|0;p.st.aces=d.st[2]|0;p.st.skills=d.st[3]|0;p.st.sabotage=d.st[4]|0;}p.popT=null;p.finalShot=!!d.fs;p.holed=!!d.h;p.sunk=p.holed;p.frozen=!!d.f;p.shield=!!d.sh;p.shieldRounds=d.sr|0;
     if(d.sk&&typeof d.sk==='object')for(const k in SKILL_MAX)p.sk[k]=clamp(d.sk[k]|0,0,SKILL_MAX[k]);
     p.model.g.visible=!p.holed&&p.spawned;p.model.g.scale.set(1,1,1);p.model.ice.visible=p.frozen;p.model.shield.visible=p.shield;p.lastRest=p.pos.clone();
   });
@@ -1292,6 +1384,7 @@ function applySnap(sn){
   S.turnT=TT();
   S.cur=clamp(sn.cur|0,0,S.players.length-1);S.state='aim';S.pendingShot=false;S.armed.power=S.armed.jump=S.armed.magnet=S.armed.ghost=S.armed.warp=S.armed.giant=false;
   const p=cur();S.camYaw=Math.atan2(S.H.hole.x-p.pos.x,S.H.hole.z-p.pos.z);
+  S.remoteAck=false;S.remoteWait=0;if(S.mode==='online'&&NET.room&&p.kind==='human'){try{NET.room.emit('turn',{id:p.id,hole:S.hole});}catch(e){}}
   updateHUD();return true;
 }
 NET.sendAct=function(a){
@@ -1414,9 +1507,11 @@ function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setPix
 Q.level=detectQuality();
 window.addEventListener('resize',resize);applyQuality(Q.level,true);
 
-let last=performance.now();
-function frame(now){
-  requestAnimationFrame(frame);
+let last=performance.now(),rafSeen=performance.now(),ticking=false;
+// keep the simulation alive when the browser pauses requestAnimationFrame (occluded tab): online hosts keep relaying and timers stay fair
+setInterval(()=>{if(performance.now()-rafSeen>400&&!ticking){ticking=true;try{frame(performance.now(),true);}finally{ticking=false;}}},50);
+function frame(now,fallback){
+  if(!fallback){rafSeen=now;requestAnimationFrame(frame);}
   const raw=(now-last)/1000;const dt=Math.min(0.05,raw);S.rawDt=Math.min(0.35,Math.max(0,raw));last=now;
   if(S.H){update(dt,now/1000);
     Q.fpsT+=dt;Q.fpsN++;if(Q.fpsT>=4){const fps=Q.fpsN/Q.fpsT;Q.fpsT=0;Q.fpsN=0;
@@ -1435,7 +1530,7 @@ function update(dt,time){
   birds.forEach(b=>{const t=time*0.12+b.ph;b.sp.position.set(Math.cos(t)*b.r,b.h+Math.sin(time*0.7+b.ph)*1.5,Math.sin(t)*b.r);const flap=0.8+Math.sin(time*6+b.ph)*0.2;b.sp.scale.set(2.2,1.1*flap,1);});
   S.spinners.forEach(o=>{o.g.rotation.y=-((H.t||0)*o.t.speed*(H.spinScale||1));});
   if(S.mill)S.mill.rotation.z+=dt*0.8;
-  S.fans.forEach(o=>{o.bl.rotateZ(dt*9);o.at.offset.y-=dt*0.9;});
+  S.fans.forEach(o=>{o.bl.rotateZ(dt*9);const a=o.at.rotation;o.at.offset.x+=Math.sin(a)*dt*0.9;o.at.offset.y-=Math.cos(a)*dt*0.9;});
   S.portals.forEach(o=>{o.ring.rotation.y+=dt*2;o.ring.position.y=1.1+Math.sin(time*3)*0.1;});
   S.wells.forEach(o=>{o.disk.rotation.z-=dt*1.2;o.ring.rotation.z+=dt*2;o.ring.position.y=0.35+Math.sin(time*3)*0.08;});
   S.spikes.forEach(o=>{const per=o.t.period/(H.spinScale||1);const ph=(((H.t||0)%per)+per)%per/per;const up=ph<0.5?1:0;const target=up?0:-0.9;o.sp.position.y+=(target-o.sp.position.y)*Math.min(1,dt*14);});
@@ -1444,17 +1539,18 @@ function update(dt,time){
   if(S.state==='moving'){S.moveT=(S.moveT||0)+dt;let maxSp=0,anyAir=false;S.players.forEach(b=>{if(b.spawned&&!b.sunk){maxSp=Math.max(maxSp,Math.hypot(b.vel.x,b.vel.z));if(b.air)anyAir=true;}});
     S.slowT=(maxSp<0.35&&!anyAir)?(S.slowT||0)+dt:0;
     if(S.moveT>20||S.slowT>0.8){S.players.forEach(b=>{if(!b.air){b.vel.set(0,0,0);}else if(S.moveT>20){b.vel.set(0,0,0);b.air=false;b.pos.y=heightAt(S.H,b.pos.x,b.pos.z);}});}}
+  if(NET.room&&S.mode==='online'){S.pingT=(S.pingT||0)+dt;if(S.pingT>3){S.pingT=0;const ps=NET.room.peers();S.players.forEach(q=>{const pr=ps.find(x=>x.peer===q.peer);if(pr&&pr.presence&&pr.presence.ping!=null)q.ping=pr.presence.ping;});updateHUD();}}
   if(S.state==='wait'){S.waitT=(S.waitT||0)+dt;if(S.waitT>4){S.waitT=0;nextTurn();}}else S.waitT=0;
   if(S.state==='aim'&&S.cur>=0){S.aimT=(S.aimT||0)+dt;const cp=cur();if(cp.kind==='bot'&&!S.botPull&&S.aimT>7){S.aimT=0;botAim(cp);}}
   if(S.state==='moving'||S.state==='aim'||S.state==='wait'){
-    const ev=[];S.acc+=(S.rawDt!=null?S.rawDt:dt);let n=0;
+    const ev=[];S.acc+=(S.rawDt!=null?S.rawDt:dt)*(S.autoplay?3:1);let n=0;
     while(S.acc>=STEP&&n<48){S.players.forEach(b=>{if(!b.prev)b.prev=V3();b.prev.copy(b.pos);});stepWorld(STEP,ev);S.acc-=STEP;n++;}
     if(ev.includes('holed')){S.players.forEach(b=>{if(b.holed&&!b.sunk&&!b.announced){b.announced=true;S.finishOrder.push(b);if(b.strokes===1)b.st.aces++;showEmote(b,b.strokes===1?'🤩':'😎');updateHUD();SFX.holed();[0xffd23f,0xff7a9a,0x7cd8ff,0x5ee68f].forEach(c=>burst(b.pos,12,c,1.4,2.2));toast(`⛳ ${b.name} أدخلها بـ ${b.strokes} ${b.strokes===1?'ضربة':'ضربات'}!`);
       if(!S.lastRound){S.lastRound=true;S.players.forEach(q=>{if(!q.holed)q.finalShot=true;});setTimeout(()=>toast('🔥 الجولة الأخيرة: ضربة واحدة لكل لاعب!'),1500);}}});}
-    if(ev.includes('bump')&&!S.bumpToast){S.bumpToast=true;toast('🔴 قافز! انطلقت الكرة');S.shake=0.35;SFX.bump();setTimeout(()=>S.bumpToast=false,1500);}
+    if(ev.includes('bump')&&!S.bumpToast){S.bumpToast=true;toast('🔴 قافز! انطلقت الكرة');S.shake=0.35;SFX.bump();buzz(40);setTimeout(()=>S.bumpToast=false,1500);}
     if(ev.includes('spike')){S.players.forEach(b=>{if(b.spikeHit&&!b.spikeDone){b.spikeDone=true;b.strokes++;burst(b.pos,16,0xff4040,1.0);S.shake=0.4;SFX.spike();toast(`🔺 ${b.name} صدمته الأشواك: +1 ضربة`);}});}
     if(ev.includes('well')){S.players.forEach(b=>{if(b.wet&&b.wetT===0){toast(`🌀 الثقب ابتلع ${b.name}! +1 ضربة`);b.wetT=0.001;burst(b.pos,20,0x9b59b6,0.8);SFX.well();}});}
-    if(ev.includes('wall'))SFX.wall();
+    if(ev.includes('wall')){SFX.wall();buzz(12);}
     S.players.forEach(b=>{if(b.hit){burst(b.pos,Math.min(12,3+b.hit|0),0xe8dcc0,0.35);b.hit=0;}
       if(b.blockHit){const bl=b.blockHit;b.blockHit=null;if(bl.mesh&&bl.mesh.visible){bl.mesh.visible=false;burst(V3(bl.x,heightAt(H,bl.x,bl.z)+0.6,bl.z),26,bl.kind==='tree'?0x3fae62:bl.kind==='rock'?0x9c9c94:0xc08a4a,1.2,1.8);SFX.explode();S.shake=0.25;b.pts+=1;toast(`${bl.kind==='tree'?'🌳 كسر شجرة':bl.kind==='rock'?'🪨 حطّم صخرة':'📦 كسر صندوقاً'} ${b.name} وفُتح الطريق! +1★`);}}
       if(b.hitWall){const w=b.hitWall;b.hitWall=null;revealWall(w);}
